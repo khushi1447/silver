@@ -1,8 +1,8 @@
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
-import { Shield, Lock, Eye, Database, Cookie, UserCheck, Globe, Settings, Mail } from "lucide-react"
+import { Shield, Lock, Eye, Database, Cookie, UserCheck, Globe, Settings, Mail, Phone } from "lucide-react"
 
-export default function PrivacyPage() {
+export default function PrivacyPage() { 
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -342,15 +342,15 @@ export default function PrivacyPage() {
                   <div className="space-y-2 text-gray-700">
                     <p className="flex items-center gap-2">
                       <span className="text-purple-500">📧</span>
-                      <span>Email: ac@silverline925.in</span>
+                      <span onClick={() => window.location.href = "mailto:silver.line9250@gmail.com"} className="cursor-pointer">Email: silver.line9250@gmail.com</span>
                     </p>
                     <p className="flex items-center gap-2">
                       <span className="text-purple-500">📱</span>
-                      <span>Phone: +91 9512765399</span>
+                      <span onClick={() => window.location.href = "tel:+919512765399"} className="cursor-pointer">Phone: +91 9512765399</span>
                     </p>
                     <p className="flex items-center gap-2">
                       <span className="text-purple-500">📍</span>
-                      <span>Address: A-604 Blossom Aura, Nadiad, Gujarat, India</span>
+                      <span onClick={() => window.location.href = "https://www.google.com/maps/place/Blossom+Aura/@22.6774876,72.8793417,17z/data=!3m1!4b1!4m6!3m5!1s0x395e5b3c654679bd:0x7fec0936b8b30f97!8m2!3d22.6774876!4d72.8819166!16s%2Fg%2F11j3w77f02?entry=ttu&g_ep=EgoyMDI1MDYyOS4wIKXMDSoASAFQAw%3D%3D"} className="cursor-pointer">Address: A-604 Blossom Aura, Nadiad, Gujarat, India</span>
                     </p>
                   </div>
                 </div>

@@ -520,7 +520,7 @@ export async function createContactAction(contactData: {
     // Import the email function
     const { sendContactEmail } = await import('./email')
     
-    // Send email to ac@silverline925.in
+    // Send email to silver.line9250@gmail.com
     const emailResult = await sendContactEmail(contactData)
     
     if (emailResult.success) {

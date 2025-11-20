@@ -24,12 +24,12 @@ export async function POST(request: NextRequest) {
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: process.env.EMAIL_USER || "ac@silverline925.in",
+        user: process.env.EMAIL_USER || "silver.line9250@gmail.com",
         pass: process.env.EMAIL_PASS || "",
       },
     });
 
-    const from = process.env.EMAIL_USER || "ac@silverline925.in";
+    const from = process.env.EMAIL_USER || "silver.line9250@gmail.com";
     const info = await transporter.sendMail({
       from,
       to,
