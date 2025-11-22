@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { productId: string } }
+  { params }: { params: { productId: string } | Promise<{ productId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -17,8 +17,9 @@ export async function GET(
       );
     }
     
-    const userId = parseInt(session.user.id);
-    const productId = parseInt(params.productId);
+    const { productId: productIdRaw } = await params as { productId: string };
+    const userId = Number(session.user.id);
+    const productId = Number(productIdRaw);
     
     if (isNaN(productId)) {
       return NextResponse.json(
@@ -52,7 +53,7 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { productId: string } }
+  { params }: { params: { productId: string } | Promise<{ productId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -64,8 +65,9 @@ export async function POST(
       );
     }
     
-    const userId = parseInt(session.user.id);
-    const productId = parseInt(params.productId);
+    const { productId: productIdRaw } = await params as { productId: string };
+    const userId = Number(session.user.id);
+    const productId = Number(productIdRaw);
     
     if (isNaN(productId)) {
       return NextResponse.json(
@@ -134,7 +136,7 @@ export async function POST(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { productId: string } }
+  { params }: { params: { productId: string } | Promise<{ productId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -146,8 +148,9 @@ export async function DELETE(
       );
     }
     
-    const userId = parseInt(session.user.id);
-    const productId = parseInt(params.productId);
+    const { productId: productIdRaw } = await params as { productId: string };
+    const userId = Number(session.user.id);
+    const productId = Number(productIdRaw);
     
     if (isNaN(productId)) {
       return NextResponse.json(

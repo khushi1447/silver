@@ -56,14 +56,30 @@ export function useWishlist() {
         throw new Error(response.error)
       }
 
-      // API returns { items: [...], totalCount: ... }
-      const items = response.data?.items || []
+      // API returns { items: [...], totalCount: ... } or an array directly
+      // Cast response.data to any to handle varying API shapes and avoid 'never' typing
+      const rawData: any = (response as any).data
+      const items = Array.isArray(rawData) ? rawData : (Array.isArray(rawData?.items) ? rawData.items : [])
       
+      const normalizedItems = Array.isArray(items) ? items : []
       setState({
-        items: Array.isArray(items) ? items : [],
+        items: normalizedItems,
         isLoading: false,
         error: null,
       })
+
+      // Hydrate status map in bulk to avoid per-product network calls later
+      if (normalizedItems.length) {
+        const statusMap: Record<string, boolean> = {}
+        for (const w of normalizedItems) {
+          // Defensive: ensure structure
+          if (w?.product?.id != null) {
+            statusMap[w.product.id.toString()] = true
+          }
+        }
+        // Merge existing (to preserve any false values already set) but prefer known true flags
+        setWishlistStatus(prev => ({ ...prev, ...statusMap }))
+      }
     } catch (error) {
       setState({
         items: [],
@@ -81,6 +97,11 @@ export function useWishlist() {
       return false
     }
 
+    // If we already know the status (cached), avoid network call
+    if (wishlistStatus[productId] !== undefined) {
+      return wishlistStatus[productId]
+    }
+
     try {
       const response = await fetch(`/api/wishlist/${productId}`)
       const data = await response.json()
@@ -95,7 +116,7 @@ export function useWishlist() {
     
     setWishlistStatus(prev => ({ ...prev, [productId]: false }))
     return false
-  }, [isAuthenticated])
+  }, [isAuthenticated, wishlistStatus])
 
   // Toggle wishlist item
   const toggleWishlistItem = useCallback(async (productId: string) => {
