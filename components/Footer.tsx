@@ -115,6 +115,22 @@ export default function Footer() {
                   Refund Policy
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/shipping-policy"
+                  className="text-gray-400 hover:text-white transition-colors hover:translate-x-1 transform duration-200 inline-block text-sm sm:text-base"
+                >
+                  Shipping Policy
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/cancellation-policy"
+                  className="text-gray-400 hover:text-white transition-colors hover:translate-x-1 transform duration-200 inline-block text-sm sm:text-base"
+                >
+                  Cancellation Policy
+                </Link>
+              </li>
             </ul>
           </div>
 
