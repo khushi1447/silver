@@ -1,6 +1,18 @@
 // Test script for Delhivery createPickup functionality
-// Run with: npx tsx test-delhivery-pickup.js
+// Run with: npx tsx test-delhivery-pickup.ts
 
+// IMPORTANT: Load environment variables FIRST before any other imports
+import dotenv from 'dotenv'
+dotenv.config()
+
+// Verify environment variables are loaded
+console.log('Environment check:')
+console.log('- DELHIVERY_API_KEY exists:', !!process.env.DELHIVERY_API_KEY)
+console.log('- DELHIVERY_API_KEY value:', process.env.DELHIVERY_API_KEY)
+console.log('- DELHIVERY_BASE_URL:', process.env.DELHIVERY_BASE_URL)
+console.log('')
+
+// Now import after env is loaded
 import { getDelhiveryService, getEnvPickupAddress } from './lib/delhivery'
 
 async function testCreatePickup() {
@@ -40,7 +52,7 @@ async function testCreatePickup() {
     }
     
   } catch (error) {
-    console.error('❌ ERROR in test:', error instanceof Error ? error.message : String(error))
+    console.error('❌ ERROR in test:', (error as Error).message)
   }
 }
 
