@@ -1,185 +1,514 @@
 # VPS Deployment Guide for Silverline E-commerce
 
-## Prerequisites
-- Hostinger VPS with Ubuntu 20.04/22.04 or Debian 11/12
-- Domain name pointed to VPS IP address
-- SSH access to VPS
-- Git repository access
+Complete step-by-step guide to deploy the Silverline e-commerce application on Hostinger VPS.
 
-## Quick Start
+---
 
-### 1. Upload Deployment Script
+## Prerequisites Checklist
 
-Upload `deploy-vps.sh` to your VPS:
+Before starting, ensure you have:
+- ✅ Hostinger VPS subscription (Ubuntu 20.04/22.04 or Debian 11/12)
+- ✅ Domain name registered and ready
+- ✅ All credentials ready (see below)
+- ✅ SSH client (PuTTY for Windows or terminal for Mac/Linux)
 
-```bash
-# From your local machine
-scp deploy-vps.sh root@your-vps-ip:/root/
-```
+### Required Credentials
 
-Or create it directly on VPS:
+Prepare these credentials before deployment (keep them secure):
+
+1. **VPS Access**
+   - IP Address (from Hostinger dashboard)
+   - SSH Username (usually `root`)
+   - SSH Password (from Hostinger panel)
+
+2. **Domain Name**
+   - Your domain (e.g., `silverline.com`)
+
+3. **Database Connection**
+   - PostgreSQL connection URL (from Neon.tech dashboard)
+
+4. **Razorpay Credentials**
+   - Live Key ID
+   - Live Key Secret
+   - Webhook Secret
+
+5. **Delhivery Credentials**
+   - API Key
+   - Client Name
+   - Complete pickup/warehouse address details
+
+6. **Email Credentials**
+   - Gmail address
+   - App-specific password
+
+---
+
+## Step-by-Step Deployment
+
+### Step 1: Access Your Hostinger VPS
+
+**1.1. Get VPS Details**
+- Login to your Hostinger account
+- Navigate to VPS dashboard
+- Note down your VPS IP address
+- Find SSH credentials (username: `root`, password in panel)
+
+**1.2. Connect via SSH**
+
+**On Windows (PowerShell or CMD):**
 ```bash
 ssh root@your-vps-ip
-nano deploy-vps.sh
-# Paste the script content and save (Ctrl+X, Y, Enter)
 ```
 
-### 2. Update Domain Configuration
+**On Windows (using PuTTY):**
+- Download PuTTY from: https://www.putty.org/
+- Host Name: `your-vps-ip`
+- Port: `22`
+- Connection Type: SSH
+- Click "Open"
+- Login as: `root`
+- Enter password when prompted
 
-Edit the script before running:
+**On Mac/Linux:**
 ```bash
-nano deploy-vps.sh
+ssh root@your-vps-ip
 ```
 
-Change line:
-```bash
-DOMAIN="yourdomain.com"  # Replace with your actual domain
-```
+Enter password when prompted. You should see a command prompt like: `root@vps-xxxxx:~#`
 
-### 3. Make Script Executable
+---
+
+### Step 2: Point Domain to VPS
+
+**2.1. Configure DNS Records**
+
+Go to your domain registrar (GoDaddy, Namecheap, etc.) and update DNS:
+
+| Type | Name | Value | TTL |
+|------|------|-------|-----|
+| A | @ | your-vps-ip | 3600 |
+| A | www | your-vps-ip | 3600 |
+
+**Example:**
+- If VPS IP is `192.168.1.100`
+- A record: `@` → `192.168.1.100`
+- A record: `www` → `192.168.1.100`
+
+**2.2. Wait for DNS Propagation**
+- Usually takes 5-30 minutes
+- Test with: `ping yourdomain.com`
+
+---
+
+### Step 3: Download Deployment Script
+
+On your VPS (connected via SSH), run:
 
 ```bash
+# Download the deployment script from GitHub
+wget https://raw.githubusercontent.com/Pr1ncePS2002/silver/main/deploy-vps.sh
+
+# Make it executable
 chmod +x deploy-vps.sh
 ```
 
-### 4. Run Deployment
+---
+
+### Step 4: Configure Domain
+
+Edit the deployment script to add your domain:
+
+```bash
+nano deploy-vps.sh
+```
+
+Find this line near the top:
+```bash
+DOMAIN="yourdomain.com"
+```
+
+Change it to your actual domain:
+```bash
+DOMAIN="silverline.com"  # Replace with YOUR domain
+```
+
+**Save and exit:**
+- Press `Ctrl + X`
+- Press `Y` to confirm
+- Press `Enter` to save
+
+---
+
+### Step 5: Run Deployment Script
+
+Start the automated deployment:
 
 ```bash
 bash deploy-vps.sh
 ```
 
-The script will automatically:
-- ✅ Install Node.js, pnpm, PM2, Nginx
-- ✅ Clone your repository
-- ✅ Setup environment variables
+**The script will prompt you for credentials. Enter them one by one:**
+
+#### 5.1. Database URL
+```
+Database URL: 
+```
+Paste your PostgreSQL connection string (from Neon.tech):
+```
+postgresql://username:password@host:5432/database?sslmode=require
+```
+
+#### 5.2. NextAuth Secret
+```
+NextAuth Secret: 
+```
+Enter a secure random string (or use existing: `jewelery`)
+
+#### 5.3. Razorpay Credentials
+```
+Razorpay Key ID: 
+```
+Enter your Razorpay live key ID (e.g., `rzp_live_xxxxx`)
+
+```
+Razorpay Key Secret: 
+```
+Enter your Razorpay key secret (input will be hidden)
+
+```
+Razorpay Webhook Secret: 
+```
+Enter your webhook secret (you set this yourself)
+
+#### 5.4. Delhivery Credentials
+```
+Delhivery API Key: 
+```
+Enter your Delhivery API key
+
+```
+Delhivery Client Name: 
+```
+Enter your client name (e.g., `Your_Business_Name`)
+
+#### 5.5. Pickup Location Details
+```
+Delhivery Pickup Name: 
+```
+Your store/warehouse name (e.g., `Silverline Store`)
+
+```
+Delhivery Pickup Address: 
+```
+Complete address (e.g., `A-604 blossom aura near moti canal`)
+
+```
+Delhivery Pickup City: 
+```
+City name (e.g., `nadiad`)
+
+```
+Delhivery Pickup State: 
+```
+State name (e.g., `Gujarat`)
+
+```
+Delhivery Pickup PIN: 
+```
+PIN code (e.g., `387001`)
+
+```
+Delhivery Pickup Phone: 
+```
+10-digit phone number (e.g., `9512765399`)
+
+```
+Delhivery Pickup Email: 
+```
+Email address (e.g., `store@silverline.com`)
+
+#### 5.6. Email Credentials
+```
+Email User: 
+```
+Your Gmail address (e.g., `youremail@gmail.com`)
+
+```
+Email Password: 
+```
+Gmail app-specific password (input will be hidden)
+
+**Note:** For Gmail app password:
+1. Go to Google Account settings
+2. Enable 2-factor authentication
+3. Generate app-specific password
+4. Use that password here
+
+---
+
+### Step 6: Wait for Deployment to Complete
+
+The script will now:
+- ✅ Update system packages
+- ✅ Install Node.js, pnpm, PM2
+- ✅ Install and configure Nginx
+- ✅ Clone your application code
+- ✅ Create environment file with your credentials
+- ✅ Install dependencies
+- ✅ Run database migrations
 - ✅ Build the application
-- ✅ Configure process manager (PM2)
-- ✅ Setup Nginx reverse proxy
+- ✅ Start application with PM2
+- ✅ Configure Nginx reverse proxy
 - ✅ Install SSL certificate (Let's Encrypt)
-- ✅ Configure firewall
-- ✅ Setup cron job for shipment tracking
+- ✅ Setup firewall rules
+- ✅ Configure cron job for shipment tracking
 
-## Post-Deployment Steps
+**Total time:** Approximately 10-15 minutes
 
-### 1. Update Environment Variables
-
-Edit production environment file:
-```bash
-nano /var/www/silverline/.env.production
+When you see:
+```
+======================================
+✓ DEPLOYMENT COMPLETED SUCCESSFULLY!
+======================================
 ```
 
-**Critical updates needed:**
-```env
-NEXTAUTH_URL=https://yourdomain.com
-NEXT_PUBLIC_API_URL=https://yourdomain.com
-```
+Your application is live!
 
-Restart after changes:
-```bash
-pm2 restart silverline
-```
+---
 
-### 2. Register Razorpay Webhook
+### Step 7: Verify Deployment
 
-1. Login to Razorpay Dashboard: https://dashboard.razorpay.com/
-2. Navigate to: Settings → Webhooks
-3. Add new webhook:
-   - **URL**: `https://yourdomain.com/api/webhooks/razorpay`
-   - **Secret**: `dhruvkabra1442`
-   - **Events**: Select `payment.captured`
-4. Save and activate
-
-### 3. Verify Deployment
-
-Check application status:
+**7.1. Check Application Status**
 ```bash
 pm2 status
+```
+You should see `silverline` status as `online`
+
+**7.2. Test Website Access**
+
+Open your browser and visit:
+- `https://yourdomain.com`
+
+You should see the Silverline website homepage!
+
+**7.3. Test Admin Panel**
+- URL: `https://yourdomain.com/admin`
+- Login with admin credentials
+
+**7.4. Check Logs**
+```bash
 pm2 logs silverline
 ```
+Press `Ctrl+C` to exit logs
 
-Test the website:
-```bash
-curl https://yourdomain.com
+---
+
+### Step 8: Configure Razorpay Webhook
+
+**IMPORTANT:** Update webhook URL in Razorpay dashboard
+
+**8.1. Login to Razorpay**
+- Go to: https://dashboard.razorpay.com
+- Login with your credentials
+
+**8.2. Navigate to Webhooks**
+- Click **Settings** (gear icon)
+- Select **Webhooks** from left menu
+
+**8.3. Create New Webhook**
+- Click **Create New Webhook** or **+ Add Webhook**
+
+**8.4. Configure Webhook**
+```
+URL: https://yourdomain.com/api/webhooks/razorpay
+Secret: [your-webhook-secret]
+Active Events: payment.captured
 ```
 
-Visit in browser: `https://yourdomain.com`
+**8.5. Save and Activate**
+- Click **Create Webhook**
+- Ensure webhook is **Active**
 
-### 4. Delhivery Warehouse Setup
+**8.6. Test Webhook (Optional)**
+- Click **Test Webhook**
+- Should return `200 OK`
 
-**Option A: Manual (Recommended)**
-1. Login to Delhivery dashboard: https://direct.delhivery.com
-2. Add warehouse manually with pickup address from `.env`
+---
 
-**Option B: API (After wallet recharge)**
-- Recharge Delhivery wallet with minimum ₹500
-- Warehouse registration will work automatically via API
+### Step 9: Setup Delhivery Warehouse
 
-## Management Commands
+You have two options:
+
+#### Option A: Manual Setup (Recommended)
+
+1. Login to Delhivery: https://direct.delhivery.com
+2. Navigate to **Warehouse Management**
+3. Click **Add New Warehouse**
+4. Enter your pickup location details:
+   - Name, Address, City, State, PIN
+   - Phone, Email
+5. Submit for approval
+6. Wait 24-48 hours for approval
+7. Once approved, shipments will be created automatically
+
+#### Option B: API Setup (After Wallet Recharge)
+
+1. Login to Delhivery dashboard
+2. Recharge wallet with minimum ₹500
+3. Run the test script on VPS:
+```bash
+cd /var/www/silverline
+npx tsx test-delhivery-pickup.ts
+```
+4. If successful, warehouse is registered
+5. If error about wallet balance, use Option A
+
+---
+
+### Step 10: Test Complete Order Flow
+
+**10.1. Place Test Order**
+1. Visit your website: `https://yourdomain.com`
+2. Browse products and add to cart
+3. Proceed to checkout
+4. Enter test shipping address
+5. Complete payment (use Razorpay test mode first)
+
+**10.2. Verify Order Processing**
+1. Check if order confirmation email received
+2. Login to admin panel
+3. Verify order appears in **Orders** section
+4. Check if shipment is created (after Delhivery warehouse approval)
+5. Verify order status updates
+
+**10.3. Enable Live Payments**
+Once testing is successful:
+1. Switch Razorpay to live mode (already configured)
+2. Test with small real transaction
+3. Verify money reflects in Razorpay dashboard
+
+---
+
+## What Happens Automatically?
+
+After successful deployment:
+
+✅ **Payment Capture**
+- Customer completes Razorpay payment
+- Webhook notifies your application
+- Payment marked as captured
+- Shipment creation triggered
+
+✅ **Shipment Creation**
+- Order details sent to Delhivery
+- Waybill (tracking number) generated
+- Stored in database
+- Customer notified via email
+
+✅ **Shipment Tracking**
+- Cron job runs every 3 hours
+- Checks shipment status with Delhivery
+- Updates order status automatically
+- Logs all status changes
+
+✅ **Email Notifications**
+- Order confirmation
+- Shipment tracking details
+- Status updates
+
+---
+
+## Daily Management & Operations
 
 ### Application Management
 
-**View logs:**
+**View Application Status**
 ```bash
-pm2 logs silverline
-pm2 logs silverline --lines 100
+pm2 status
 ```
 
-**Restart application:**
+**View Live Logs**
+```bash
+pm2 logs silverline
+# Press Ctrl+C to exit
+```
+
+**Restart Application**
 ```bash
 pm2 restart silverline
 ```
 
-**Stop application:**
+**Stop Application**
 ```bash
 pm2 stop silverline
 ```
 
-**Start application:**
+**Start Application**
 ```bash
 pm2 start silverline
 ```
 
-**View process status:**
+---
+
+### Updating Your Application
+
+When you make code changes and push to GitHub:
+
+**Manual Update Method:**
 ```bash
-pm2 status
-```
+# Connect to VPS
+ssh root@your-vps-ip
 
-### Update Application
-
-When you push new code:
-
-```bash
+# Navigate to application directory
 cd /var/www/silverline
+
+# Pull latest code
 git pull origin main
+
+# Install new dependencies (if any)
 pnpm install
-pnpm prisma generate
+
+# Rebuild application
 pnpm build
+
+# Restart
 pm2 restart silverline
+
+# Verify
+pm2 logs silverline
 ```
 
-Or create update script:
+**Create Auto-Update Script:**
 ```bash
+# Create update script
 nano /var/www/silverline/update.sh
 ```
 
+Paste this content:
 ```bash
 #!/bin/bash
+echo "🔄 Updating Silverline application..."
 cd /var/www/silverline
 git pull origin main
 pnpm install
 pnpm prisma generate
 pnpm build
 pm2 restart silverline
-echo "✓ Application updated successfully!"
+echo "✅ Update completed!"
+pm2 logs silverline --lines 50
 ```
 
+Make it executable:
 ```bash
 chmod +x /var/www/silverline/update.sh
-# Run when needed:
+```
+
+Use it whenever you need to update:
+```bash
 bash /var/www/silverline/update.sh
 ```
 
-### Database Management
+--- Database Management
 
 **Run migrations:**
 ```bash
