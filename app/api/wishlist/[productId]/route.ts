@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { productId: string } | Promise<{ productId: string }> }
+  { params }: { params: { productId: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -17,7 +17,7 @@ export async function GET(
       );
     }
     
-    const { productId: productIdRaw } = await params as { productId: string };
+    const productIdRaw = params.productId;
     const userId = Number(session.user.id);
     const productId = Number(productIdRaw);
     
@@ -53,7 +53,7 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { productId: string } | Promise<{ productId: string }> }
+  { params }: { params: { productId: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -65,7 +65,7 @@ export async function POST(
       );
     }
     
-    const { productId: productIdRaw } = await params as { productId: string };
+    const productIdRaw = params.productId;
     const userId = Number(session.user.id);
     const productId = Number(productIdRaw);
     
@@ -136,7 +136,7 @@ export async function POST(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { productId: string } | Promise<{ productId: string }> }
+  { params }: { params: { productId: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -148,7 +148,7 @@ export async function DELETE(
       );
     }
     
-    const { productId: productIdRaw } = await params as { productId: string };
+    const productIdRaw = params.productId;
     const userId = Number(session.user.id);
     const productId = Number(productIdRaw);
     
