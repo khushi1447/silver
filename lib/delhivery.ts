@@ -13,7 +13,7 @@ const DELHIVERY_ENDPOINTS = {
   TRACK_PACKAGE: '/api/v1/packages/json/',
   CANCEL_PACKAGE: '/api/p/edit',
   GET_SERVICES: '/api/kinko/v1/invoice/services', // not currently used for serviceability
-  CREATE_PICKUP: '/api/backend/createpickup',
+  CREATE_WAREHOUSE: '/fm/request/new/',
   PINCODE_SERVICEABILITY: '/c/api/pin-code', // inferred common endpoint (may vary by account tier)
 }
 
@@ -165,6 +165,7 @@ export interface DelhiveryPickupRequest {
 export interface DelhiveryPickupResponse {
   success: boolean
   warehouseId?: string
+  message?: string
   error?: string
 }
 
@@ -178,9 +179,10 @@ export class DelhiveryService {
   private serviceabilityCache: Map<string, { serviceable: boolean; lastChecked: number }> = new Map()
 
   constructor() {
-    this.apiKey = DELHIVERY_API_KEY
-    this.clientName = DELHIVERY_CLIENT_NAME
-    this.baseURL = DELHIVERY_BASE_URL
+    // Read from process.env directly to support runtime loading (e.g., in test scripts with dotenv)
+    this.apiKey = process.env.DELHIVERY_API_KEY || DELHIVERY_API_KEY
+    this.clientName = process.env.DELHIVERY_CLIENT_NAME || DELHIVERY_CLIENT_NAME
+    this.baseURL = process.env.DELHIVERY_BASE_URL || DELHIVERY_BASE_URL
 
     if (!this.apiKey) {
       throw new Error('Delhivery API key is required')
@@ -192,7 +194,8 @@ export class DelhiveryService {
    */
   async createPickup(pickupData: DelhiveryPickupRequest): Promise<DelhiveryPickupResponse> {
     try {
-      const payload = {
+      // Delhivery warehouse registration requires form data format
+      const formData = new URLSearchParams({
         name: pickupData.name,
         add: pickupData.address,
         city: pickupData.city,
@@ -201,22 +204,30 @@ export class DelhiveryService {
         pin: pickupData.pin,
         phone: pickupData.phone,
         email: pickupData.email || '',
-        type: pickupData.type || 'pickup',
-      }
+        registered_name: pickupData.name, // Required field
+        return_add: pickupData.address,
+        return_city: pickupData.city,
+        return_state: pickupData.state,
+        return_country: pickupData.country,
+        return_pin: pickupData.pin,
+        return_phone: pickupData.phone,
+      })
 
       const response = await this.makeRequest<any>(
-        DELHIVERY_ENDPOINTS.CREATE_PICKUP,
+        DELHIVERY_ENDPOINTS.CREATE_WAREHOUSE,
         'POST',
-        payload
+        formData.toString()
       )
 
       logger.info('delhivery.createPickup.response', { response })
 
-      // Check if warehouse was created successfully
-      if (response && response.success && response.warehouse_id) {
+      // Delhivery warehouse API returns success in different formats
+      // Check for various success indicators
+      if (response && (response.success === true || response.cash_pickup_approved || response.credit_pickup_approved)) {
         return {
           success: true,
-          warehouseId: response.warehouse_id,
+          warehouseId: response.warehouse_code || response.id || 'registered',
+          message: response.rmk || 'Warehouse registration request submitted. It may require approval.',
         }
       }
 
@@ -230,11 +241,27 @@ export class DelhiveryService {
         success: false,
         error: typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage),
       }
-    } catch (error) {
+    } catch (error: any) {
       logger.error('delhivery.createPickup.error', { error })
+      
+      // Extract meaningful error message from API response
+      const apiErrorData = error.response?.data
+      let errorMessage = error.message
+      
+      if (apiErrorData) {
+        // Handle wallet balance error
+        if (apiErrorData.prepaid && apiErrorData.prepaid.includes('wallet balance')) {
+          errorMessage = `Insufficient wallet balance: ${apiErrorData.prepaid}. Please recharge your Delhivery account.`
+        } else if (typeof apiErrorData === 'string') {
+          errorMessage = apiErrorData
+        } else if (apiErrorData.error || apiErrorData.message) {
+          errorMessage = apiErrorData.error || apiErrorData.message
+        }
+      }
+      
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to create pickup location',
+        error: errorMessage,
       }
     }
   }
@@ -261,8 +288,8 @@ export class DelhiveryService {
       }
 
       if (method === 'POST' && data) {
-        // For CMU create, Delhivery expects urlencoded: format=json&client=<>&data=<json>
-        if (endpoint === DELHIVERY_ENDPOINTS.CREATE_PACKAGE) {
+        // For CMU create and warehouse registration, Delhivery expects urlencoded format
+        if (endpoint === DELHIVERY_ENDPOINTS.CREATE_PACKAGE || endpoint === DELHIVERY_ENDPOINTS.CREATE_WAREHOUSE) {
           config.headers['Content-Type'] = 'application/x-www-form-urlencoded'
         } else {
           config.headers['Content-Type'] = 'application/json'
