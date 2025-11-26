@@ -3,17 +3,17 @@ name: Deploy to VPS
 on:
   push:
     branches:
-      - main   # Auto deploy when pushing to main
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout the repository
+      - name: Checkout Repo
         uses: actions/checkout@v3
 
-      - name: Run SSH commands on VPS
+      - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -26,4 +26,4 @@ jobs:
             npx prisma generate
             npm run build
             pm2 restart jewelry-app
-
+            pm2 save
