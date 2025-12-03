@@ -7,7 +7,35 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    domains: ['placeholder.svg'],
+    // Allow common storage/CDN hosts used by this app
+    domains: [
+      'silverline925.in',
+      'www.silverline925.in',
+      'blob.vercel-storage.com',
+      'res.cloudinary.com'
+    ],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'silverline925.in',
+        pathname: '/uploads/**'
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.silverline925.in',
+        pathname: '/uploads/**'
+      },
+      {
+        protocol: 'https',
+        hostname: 'blob.vercel-storage.com',
+        pathname: '/**'
+      },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+        pathname: '/**'
+      }
+    ],
     unoptimized: true,
   },
 }

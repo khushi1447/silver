@@ -85,13 +85,13 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
         {/* Product Image Gallery */}
         <div className="animate-fade-in">
           {/* Main Image Display */}
-          <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 mb-4 relative group">
+          <div className="aspect-square rounded-lg overflow-hidden bg-gray-200 mb-4 relative group">
             <Image
               src={images[selectedImageIndex]?.url || "/placeholder.svg"}
               alt={images[selectedImageIndex]?.altText || product.name}
-              width={600}
-              height={600}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              fill
+              sizes="(min-width: 1024px) 50vw, 100vw"
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
             />
             
             {/* Rating overlay */}
@@ -147,9 +147,9 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                         <Image
                           src={image.url}
                           alt={image.altText || `${product.name} - Image ${actualIndex + 1}`}
-                          width={80}
-                          height={80}
-                          className="w-full h-full object-cover"
+                          fill
+                          sizes="80px"
+                          className="object-cover"
                         />
                       </button>
                     );

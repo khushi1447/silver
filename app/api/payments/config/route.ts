@@ -3,6 +3,9 @@ import { getRazorpayConfig } from '@/lib/razorpay'
 
 export async function GET() {
   try {
+    // Avoid static optimization
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const dynamic = 'force-dynamic'
     // Return Razorpay configuration for frontend
     const config = getRazorpayConfig()
 

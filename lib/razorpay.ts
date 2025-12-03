@@ -1,11 +1,20 @@
 import Razorpay from 'razorpay'
 import crypto from 'crypto'
 
-// Razorpay instance
-export const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_KEY_SECRET!,
-})
+// Lazy-initialize Razorpay client to avoid build-time failures
+export function getRazorpayClient() {
+  const keyId = process.env.RAZORPAY_KEY_ID
+  const keySecret = process.env.RAZORPAY_KEY_SECRET
+
+  if (!keyId || !keySecret) {
+    throw new Error('Razorpay credentials missing: set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET')
+  }
+
+  return new Razorpay({
+    key_id: keyId,
+    key_secret: keySecret,
+  })
+}
 
 // Order creation options interface
 export interface RazorpayOrderData {
@@ -28,7 +37,8 @@ export async function createRazorpayOrder(orderData: RazorpayOrderData): Promise
   | { success: false; error: string }
 > {
   try {
-    const order = await razorpay.orders.create({
+    const client = getRazorpayClient()
+    const order = await client.orders.create({
       amount: orderData.amount,
       currency: orderData.currency,
       receipt: orderData.receipt,
@@ -131,7 +141,7 @@ export enum RazorpayPaymentStatus {
 // Get payment methods for frontend
 export function getRazorpayConfig() {
   return {
-    key: process.env.RAZORPAY_KEY_ID!,
+    key: process.env.RAZORPAY_KEY_ID || '',
     currency: 'INR',
     name: 'Elegant Jewelry',
     description: 'Premium Silver & Gold Collection',

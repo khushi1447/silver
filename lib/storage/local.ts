@@ -28,7 +28,11 @@ export async function uploadToLocal(file: File, folder: string): Promise<UploadR
     await writeFile(filePath, buffer)
 
     // Return public URL - use full URL if BASE_URL is configured
-    const url = BASE_URL ? `${BASE_URL}/${filename}` : `/uploads/${folder}/${filename}`
+    // If BASE_URL points to your uploads base (e.g., https://domain/uploads/products), include the folder
+    const base = BASE_URL?.endsWith('/') ? BASE_URL.slice(0, -1) : BASE_URL
+    const url = base
+      ? `${base}/${folder}/${filename}`
+      : `/uploads/${folder}/${filename}`
 
     return {
       url,
