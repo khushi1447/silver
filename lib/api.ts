@@ -167,6 +167,10 @@ class ApiClient {
     return this.request<any>(`/api/orders/${id}/refund`, { method: 'POST' });
   }
 
+  async deleteOrder(id: string | number) {
+    return this.request<any>(`/api/orders/${id}`, { method: 'DELETE' });
+  }
+
   // Cart API
   async getCart() {
     return this.request<any>('/api/cart');
@@ -462,6 +466,7 @@ export const api = {
     create: (orderData: any) => apiClient.createOrder(orderData),
     update: (id: string | number, data: any) => apiClient.updateOrder(id, data),
     refund: (id: string | number) => apiClient.refundOrder(id),
+    delete: (id: string | number) => apiClient.deleteOrder(id),
     track: (params: { email?: string; phone?: string; orderNumber?: string }) => apiClient.trackOrders(params),
   },
   cart: {

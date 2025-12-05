@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
+import { cookies } from "next/headers";
+import jwt from "jsonwebtoken";
 
 // Validation schema for updating order status
 const updateOrderSchema = z.object({
@@ -9,13 +12,39 @@ const updateOrderSchema = z.object({
   notes: z.string().optional(),
 });
 
+// Helper function to check admin authentication
+async function checkAdminAuth() {
+  // First try NextAuth session
+  const session = await getServerSession(authOptions);
+  if (session?.user?.isAdmin) {
+    return true;
+  }
+
+  // Fallback to JWT admin token
+  try {
+    const cookieStore = await cookies();
+    const adminToken = cookieStore.get("admin-token")?.value;
+    
+    if (adminToken) {
+      const jwtSecret = process.env.JWT_SECRET || "your-secret-key";
+      const decoded = jwt.verify(adminToken, jwtSecret) as any;
+      return decoded.role === "admin";
+    }
+  } catch (error) {
+    console.error("JWT verification error:", error);
+  }
+
+  return false;
+}
+
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession();
-    const orderId = parseInt(params.id);
+    const resolvedParams = await params;
+    const orderId = parseInt(resolvedParams.id);
     
     if (isNaN(orderId)) {
       return NextResponse.json(
@@ -157,19 +186,20 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession();
+    const isAdmin = await checkAdminAuth();
     
-    if (!session?.user?.isAdmin) {
+    if (!isAdmin) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
       );
     }
     
-    const orderId = parseInt(params.id);
+    const resolvedParams = await params;
+    const orderId = parseInt(resolvedParams.id);
     
     if (isNaN(orderId)) {
       return NextResponse.json(
@@ -240,6 +270,101 @@ export async function PUT(
     console.error("Error updating order:", error);
     return NextResponse.json(
       { error: "Failed to update order" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const isAdmin = await checkAdminAuth();
+    
+    if (!isAdmin) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+    
+    const resolvedParams = await params;
+    const orderId = parseInt(resolvedParams.id);
+    
+    if (isNaN(orderId)) {
+      return NextResponse.json(
+        { error: "Invalid order ID" },
+        { status: 400 }
+      );
+    }
+    
+    // Check if order exists
+    const existingOrder = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        orderItems: true,
+      },
+    });
+    
+    if (!existingOrder) {
+      return NextResponse.json(
+        { error: "Order not found" },
+        { status: 404 }
+      );
+    }
+    
+    // Delete order and related records in a transaction
+    await prisma.$transaction(async (tx) => {
+      // Restore stock for all products in the order
+      if (existingOrder.status !== "CANCELLED" && existingOrder.status !== "REFUNDED") {
+        await Promise.all(
+          existingOrder.orderItems.map(async (item) => {
+            return tx.product.update({
+              where: { id: item.productId },
+              data: {
+                stock: {
+                  increment: item.quantity,
+                },
+              },
+            });
+          })
+        );
+      }
+      
+      // Delete return requests if any
+      await tx.returnRequest.deleteMany({
+        where: { orderId },
+      });
+      
+      // Delete order items (cascade should handle this, but being explicit)
+      await tx.orderItem.deleteMany({
+        where: { orderId },
+      });
+      
+      // Delete payments
+      await tx.payment.deleteMany({
+        where: { orderId },
+      });
+      
+      // Delete shipping
+      await tx.shipping.deleteMany({
+        where: { orderId },
+      });
+      
+      // Finally delete the order
+      await tx.order.delete({
+        where: { id: orderId },
+      });
+    });
+    
+    return NextResponse.json({
+      message: "Order deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting order:", error);
+    return NextResponse.json(
+      { error: "Failed to delete order" },
       { status: 500 }
     );
   }
