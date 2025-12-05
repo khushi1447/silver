@@ -16,7 +16,8 @@ export default function ShopContent() {
   const categoryIdFromUrl = searchParams.get("category")
   const searchFromUrl = searchParams.get("search") || ""
   
-  const [search, setSearch] = useState("")
+  // Initialize search state from URL
+  const [search, setSearch] = useState(searchFromUrl)
   const [selectedCategory, setSelectedCategory] = useState<string>("all")
   const [sortBy, setSortBy] = useState("featured")
   const [currentPage, setCurrentPage] = useState(1)
@@ -37,7 +38,7 @@ export default function ShopContent() {
     return undefined
   }, [categoryIdFromUrl, selectedCategory, categories])
   
-  // Use search from URL or state
+  // Use search from URL or state (URL takes priority for API calls, but state is used for input)
   const activeSearch = searchFromUrl || search
   
   const { products, pagination, loading, error, refetch } = useProducts({
@@ -49,7 +50,7 @@ export default function ShopContent() {
     sortOrder: sortBy === "price-high" ? "desc" : "asc",
   })
 
-  // Set selected category and search from URL parameters on mount
+  // Set selected category and search from URL parameters on mount and when URL changes
   useEffect(() => {
     if (categoryIdFromUrl && categories && categories.length > 0) {
       const categoryIdNum = parseInt(categoryIdFromUrl)
@@ -60,9 +61,8 @@ export default function ShopContent() {
         }
       }
     }
-    if (searchFromUrl) {
-      setSearch(searchFromUrl)
-    }
+    // Update search state when URL search parameter changes
+    setSearch(searchFromUrl)
   }, [categoryIdFromUrl, categories, searchFromUrl])
 
   // Convert API products to CartContext Product format
@@ -149,7 +149,7 @@ export default function ShopContent() {
             <input
               type="text"
               placeholder="Search for jewelry..."
-              value={activeSearch}
+              value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             />
@@ -240,7 +240,7 @@ export default function ShopContent() {
             <input
               type="text"
               placeholder="Search for jewelry..."
-              value={activeSearch}
+              value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             />
