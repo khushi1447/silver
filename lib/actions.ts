@@ -18,6 +18,26 @@ export async function addToCartAction(productId: string, quantity: number = 1) {
     const userId = parseInt(session.user.id)
     const productIdNum = parseInt(productId)
 
+    // Validate userId
+    if (isNaN(userId) || userId <= 0) {
+      throw new Error("Invalid user session. Please log in again.")
+    }
+
+    // Validate productId
+    if (isNaN(productIdNum) || productIdNum <= 0) {
+      throw new Error("Invalid product ID")
+    }
+
+    // Verify user exists in database
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    })
+
+    if (!user) {
+      throw new Error("User not found. Please log in again.")
+    }
+
     // Check if product exists and is active
     const product = await prisma.product.findUnique({
       where: { id: productIdNum },
@@ -56,6 +76,7 @@ export async function addToCartAction(productId: string, quantity: number = 1) {
     revalidatePath("/cart")
     return { success: true, message: "Item added to cart" }
   } catch (error) {
+    console.error("Error in addToCartAction:", error)
     return { 
       success: false, 
       error: error instanceof Error ? error.message : "Failed to add item to cart" 
@@ -155,10 +176,10 @@ export async function createOrderAction(orderData: any) {
       return sum + (price * item.quantity)
     }, 0)
 
-    // Calculate shipping and tax
-    const shippingCost = subtotal > 500 ? 0 : 25
-    const taxAmount = subtotal * 0.08
-    const totalAmount = subtotal + shippingCost + taxAmount
+    // No shipping and tax charges
+    const shippingCost = 0
+    const taxAmount = 0
+    const totalAmount = subtotal
 
     // Generate order number
     const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`

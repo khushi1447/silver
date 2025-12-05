@@ -293,13 +293,11 @@ export async function POST(request: NextRequest) {
       }
     }
     
-    // Calculate shipping (simplified - you can implement more complex logic)
-    const shippingCost = subtotal > 100 ? 0 : 10; // Free shipping over ₹100
+    // No shipping and tax charges
+    const shippingCost = 0;
+    const taxAmount = 0;
     
-    // Calculate tax (simplified - you can implement more complex logic)
-    const taxAmount = (subtotal - discountAmount) * 0.08; // 8% tax
-    
-    const totalAmount = subtotal + shippingCost + taxAmount - discountAmount;
+    const totalAmount = subtotal - discountAmount;
     
     // Generate order number
     const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`;
