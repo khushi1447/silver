@@ -139,6 +139,16 @@ class ApiClient {
     return this.request<any>(`/api/orders/${id}`);
   }
 
+  async trackOrders(params: { email?: string; phone?: string; orderNumber?: string }) {
+    const searchParams = new URLSearchParams();
+    
+    if (params.email) searchParams.append("email", params.email);
+    if (params.phone) searchParams.append("phone", params.phone);
+    if (params.orderNumber) searchParams.append("orderNumber", params.orderNumber);
+
+    return this.request<{ orders: any[]; count: number }>(`/api/orders/track?${searchParams.toString()}`);
+  }
+
   async createOrder(orderData: any) {
     return this.request<any>('/api/orders', {
       method: 'POST',
@@ -452,6 +462,7 @@ export const api = {
     create: (orderData: any) => apiClient.createOrder(orderData),
     update: (id: string | number, data: any) => apiClient.updateOrder(id, data),
     refund: (id: string | number) => apiClient.refundOrder(id),
+    track: (params: { email?: string; phone?: string; orderNumber?: string }) => apiClient.trackOrders(params),
   },
   cart: {
     get: () => apiClient.getCart(),
