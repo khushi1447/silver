@@ -15,10 +15,20 @@ const blogPosts = [
   {
     id: "necklace-styling-tips-minimal-premium-jewelry",
     title: "Necklace Styling Tips for Women Who Love Minimal Yet Premium Jewelry",
-    excerpt: "Discover elegant necklace styling tips for women who prefer minimal yet premium jewelry. Learn how to pair refined designs with everyday and festive outfits.",
-    image: "/placeholder.svg",
+    excerpt:
+      "Discover elegant necklace styling tips for women who prefer minimal yet premium jewelry. Learn how to pair refined designs with everyday and festive outfits.",
+    image: "/images/products/3.jpg",
     date: new Date().toISOString(),
     category: "Jewelry Tips",
+  },
+  {
+    id: "silver-pendants-women-ahmedabad",
+    title: "Silver Pendants for Women in Ahmedabad",
+    excerpt:
+      "Explore high-quality sterling silver pendants for women in Ahmedabad. Learn about popular styles, how to choose the right pendant, and care tips for long-lasting shine.",
+    image: "/images/products/6.jpg",
+    date: new Date().toISOString(),
+    category: "Jewelry Guide",
   },
 ]
 
