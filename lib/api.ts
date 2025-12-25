@@ -28,7 +28,7 @@ class ApiClient {
     try {
       // For Next.js API routes, we need to handle server-side vs client-side differently
       let url: string;
-      
+
       if (typeof window === 'undefined') {
         // Server-side: construct full URL for internal API calls
         const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
@@ -38,18 +38,19 @@ class ApiClient {
         // Client-side: use relative URL
         url = endpoint;
       }
-      
+
       const config: RequestInit = {
         headers: {
           'Content-Type': 'application/json',
           ...options.headers,
         },
+        credentials: 'include', // Ensure session cookies are sent
         ...options,
       };
 
       console.log('API request URL:', url);
       const response = await fetch(url, config);
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
@@ -77,7 +78,7 @@ class ApiClient {
     sortOrder?: string;
   }) {
     const searchParams = new URLSearchParams();
-    
+
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
@@ -94,12 +95,12 @@ class ApiClient {
 
   async getProduct(id: string) {
     const response = await this.request<any>(`/api/products/${id}`);
-    
+
     // Log for debugging
     if (response.error) {
       console.error(`Failed to fetch product ${id}:`, response.error);
     }
-    
+
     return response;
   }
 
@@ -123,7 +124,7 @@ class ApiClient {
     status?: string;
   }) {
     const searchParams = new URLSearchParams();
-    
+
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
@@ -132,7 +133,7 @@ class ApiClient {
       });
     }
 
-    return this.request<{orders: any[], pagination: any}>(`/api/orders?${searchParams.toString()}`);
+    return this.request<{ orders: any[], pagination: any }>(`/api/orders?${searchParams.toString()}`);
   }
 
   async getOrder(id: string) {
@@ -141,7 +142,7 @@ class ApiClient {
 
   async trackOrders(params: { email?: string; phone?: string; orderNumber?: string }) {
     const searchParams = new URLSearchParams();
-    
+
     if (params.email) searchParams.append("email", params.email);
     if (params.phone) searchParams.append("phone", params.phone);
     if (params.orderNumber) searchParams.append("orderNumber", params.orderNumber);
@@ -199,7 +200,7 @@ class ApiClient {
   async mergeCart(guestCart: any[]) {
     return this.request<any>('/api/cart/merge', {
       method: 'POST',
-      body: JSON.stringify({ items: guestCart }),
+      body: JSON.stringify({ guestCart }),
     });
   }
 
@@ -213,7 +214,7 @@ class ApiClient {
       method: 'POST',
     });
   }
-  
+
   async toggleWishlist(productId: string) {
     return this.request<any>(`/api/wishlist/${productId}`, {
       method: 'POST',
@@ -268,7 +269,7 @@ class ApiClient {
     status?: string;
   }) {
     const searchParams = new URLSearchParams();
-    
+
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
@@ -333,7 +334,7 @@ class ApiClient {
     status?: string;
   }) {
     const searchParams = new URLSearchParams();
-    
+
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
@@ -342,7 +343,7 @@ class ApiClient {
       });
     }
 
-    return this.request<{coupons: any[], pagination: any}>(`/api/coupons?${searchParams.toString()}`);
+    return this.request<{ coupons: any[], pagination: any }>(`/api/coupons?${searchParams.toString()}`);
   }
 
   async getCoupon(id: string) {
@@ -405,7 +406,7 @@ class ApiClient {
     method?: string;
   }) {
     const searchParams = new URLSearchParams();
-    
+
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {

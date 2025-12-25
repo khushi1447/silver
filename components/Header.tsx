@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { ShoppingBag, Menu, X, Search, Heart } from "lucide-react";
+import { signOut } from "next-auth/react";
+import { ShoppingBag, Menu, X, Search, Heart, LogOut, User } from "lucide-react";
 import { useUnifiedCart } from "@/hooks/useUnifiedCart";
 import { useUnifiedWishlist } from "@/hooks/useUnifiedWishlist";
 import { useAuth } from "@/hooks/useAuth";
@@ -126,6 +127,28 @@ export default function Header() {
               )}
             </Link>
 
+            {/* Auth button - Login or Logout */}
+            {isAuthenticated ? (
+              <button
+                onClick={async () => {
+                  await signOut({ redirect: false });
+                  router.push("/");
+                }}
+                className="p-2 text-gray-700 hover:text-red-600 transition-colors hover:bg-red-50 rounded-full"
+                title="Logout"
+              >
+                <LogOut className="w-5 h-5" />
+              </button>
+            ) : (
+              <Link
+                href="/login"
+                className="p-2 text-gray-700 hover:text-purple-600 transition-colors hover:bg-purple-50 rounded-full"
+                title="Login"
+              >
+                <User className="w-5 h-5" />
+              </Link>
+            )}
+
             {/* Mobile menu button */}
             <button
               className="md:hidden p-2 text-gray-700 hover:text-purple-600 hover:bg-purple-50 rounded-full"
@@ -175,6 +198,32 @@ export default function Header() {
                   {item.name}
                 </Link>
               ))}
+
+              {/* Mobile Auth button */}
+              <div className="border-t border-gray-100 pt-4 mt-2">
+                {isAuthenticated ? (
+                  <button
+                    onClick={async () => {
+                      setIsMenuOpen(false);
+                      await signOut({ redirect: false });
+                      router.push("/");
+                    }}
+                    className="flex items-center gap-2 text-red-600 hover:text-red-700 transition-colors duration-200 font-medium px-4 py-2 hover:bg-red-50 rounded-lg w-full"
+                  >
+                    <LogOut className="w-5 h-5" />
+                    Logout
+                  </button>
+                ) : (
+                  <Link
+                    href="/login"
+                    className="flex items-center gap-2 text-purple-600 hover:text-purple-700 transition-colors duration-200 font-medium px-4 py-2 hover:bg-purple-50 rounded-lg"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <User className="w-5 h-5" />
+                    Login
+                  </Link>
+                )}
+              </div>
             </nav>
           </div>
         )}

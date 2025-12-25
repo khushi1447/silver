@@ -39,31 +39,55 @@ export function useUnifiedCart() {
   const authenticatedCart = useCart()
   const guestCart = useGuestCart()
   const [hasMerged, setHasMerged] = useState(false)
+  const [isMerging, setIsMerging] = useState(false)
 
-  // Merge guest cart when user logs in
+  // Check if we need to merge (guest has items and user just logged in)
+  const needsMerge = isAuthenticated && !hasMerged && guestCart.cart.items.length > 0
+
+  // Merge guest cart when user logs in with retry logic for session sync
   useEffect(() => {
-    const mergeGuestCart = async () => {
-      if (isAuthenticated && !hasMerged && guestCart.cart.items.length > 0) {
+    const mergeGuestCart = async (retryCount = 0) => {
+      const MAX_RETRIES = 3
+      const RETRY_DELAY = 500 // ms
+
+      if (isAuthenticated && !hasMerged && !isMerging && guestCart.cart.items.length > 0) {
         try {
+          setIsMerging(true)
           const guestCartData = guestCart.getCartForMerge()
           await authenticatedCart.mergeCart(guestCartData)
           guestCart.clearCart()
           setHasMerged(true)
-        } catch (error) {
+        } catch (error: any) {
           console.error('Error merging guest cart:', error)
+
+          // If unauthorized and we have retries left, wait and try again
+          // This handles the case where session isn't fully synced yet
+          if (error?.message?.includes('Unauthorized') && retryCount < MAX_RETRIES) {
+            console.log(`Retrying cart merge in ${RETRY_DELAY}ms... (attempt ${retryCount + 1}/${MAX_RETRIES})`)
+            setIsMerging(false)
+            await new Promise(resolve => setTimeout(resolve, RETRY_DELAY))
+            return mergeGuestCart(retryCount + 1)
+          }
+        } finally {
+          setIsMerging(false)
         }
       }
     }
 
     if (!authLoading) {
-      mergeGuestCart()
+      // Add a small initial delay to allow session to sync
+      const timer = setTimeout(() => {
+        mergeGuestCart()
+      }, 100)
+      return () => clearTimeout(timer)
     }
-  }, [isAuthenticated, hasMerged, guestCart, authenticatedCart, authLoading])
+  }, [isAuthenticated, hasMerged, isMerging, guestCart, authenticatedCart, authLoading])
 
   // Reset merge flag when user logs out
   useEffect(() => {
     if (!isAuthenticated) {
       setHasMerged(false)
+      setIsMerging(false)
     }
   }, [isAuthenticated])
 
@@ -141,10 +165,12 @@ export function useUnifiedCart() {
     updateCartItem,
     removeFromCart,
     clearCart,
-    refetch: isAuthenticated ? authenticatedCart.refetch : () => {},
-    clearError: isAuthenticated ? authenticatedCart.clearError : () => {},
+    refetch: isAuthenticated ? authenticatedCart.refetch : () => { },
+    clearError: isAuthenticated ? authenticatedCart.clearError : () => { },
     isAuthenticated,
     hasMerged,
-    debugCart: isAuthenticated ? () => {} : guestCart.debugCart
+    isMerging,
+    needsMerge,
+    debugCart: isAuthenticated ? () => { } : guestCart.debugCart
   }
 }

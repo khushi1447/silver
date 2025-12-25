@@ -79,7 +79,7 @@ export default function CartContent() {
         {!isAuthenticated && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2">
             <p className="text-sm text-blue-800">
-              <strong>Guest Mode:</strong> Your cart is saved locally. 
+              <strong>Guest Mode:</strong> Your cart is saved locally.
               <Link href="/login" className="text-blue-600 hover:text-blue-800 underline ml-1">
                 Sign in
               </Link> to save permanently and access from any device.
@@ -179,7 +179,7 @@ export default function CartContent() {
           ) : (
             <div className="space-y-3">
               <Link
-                href="/login"
+                href="/login?callbackUrl=/checkout"
                 className="w-full bg-purple-600 text-white py-3 px-6 rounded-lg hover:bg-purple-700 transition-colors text-center block"
               >
                 Sign In to Checkout

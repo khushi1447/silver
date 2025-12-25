@@ -2,8 +2,8 @@
 
 import type React from "react"
 
-import { useState } from "react"
-import { useCart } from "@/hooks/useCart"
+import { useState, useEffect } from "react"
+import { useUnifiedCart } from "@/hooks/useUnifiedCart"
 import { useAuth } from "@/hooks/useAuth"
 import { createOrderAction } from "@/lib/actions"
 import { CreditCard, Loader2, Wallet, Truck, CheckCircle2, Info } from "lucide-react"
@@ -11,13 +11,13 @@ import { useRouter } from "next/navigation"
 import RazorpayCheckout from './RazorpayCheckout'
 
 export default function CheckoutForm() {
-  const { cart, loading: cartLoading } = useCart()
+  const { cart, loading: cartLoading, hasMerged, isMerging, isAuthenticated: cartAuthenticated } = useUnifiedCart()
   const { isAuthenticated, user } = useAuth()
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [orderCreated, setOrderCreated] = useState<any>(null)
-  
+
   const [formData, setFormData] = useState({
     name: user ? `${user.firstName} ${user.lastName}` : "",
     email: user?.email || "",
@@ -219,11 +219,10 @@ export default function CheckoutForm() {
 
             <div className="space-y-3">
               {/* Razorpay Option */}
-              <label className={`flex items-start space-x-3 p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                formData.paymentMethod === "razorpay" 
-                  ? "border-purple-500 bg-purple-50" 
-                  : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-              }`}>
+              <label className={`flex items-start space-x-3 p-4 border-2 rounded-xl cursor-pointer transition-all ${formData.paymentMethod === "razorpay"
+                ? "border-purple-500 bg-purple-50"
+                : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                }`}>
                 <input
                   type="radio"
                   name="paymentMethod"
@@ -244,11 +243,10 @@ export default function CheckoutForm() {
               </label>
 
               {/* COD Option */}
-              <label className={`flex items-start space-x-3 p-4 border-2 rounded-xl cursor-pointer transition-all relative ${
-                formData.paymentMethod === "cod" 
-                  ? "border-green-500 bg-green-50" 
-                  : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-              }`}>
+              <label className={`flex items-start space-x-3 p-4 border-2 rounded-xl cursor-pointer transition-all relative ${formData.paymentMethod === "cod"
+                ? "border-green-500 bg-green-50"
+                : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                }`}>
                 <input
                   type="radio"
                   name="paymentMethod"
@@ -289,10 +287,10 @@ export default function CheckoutForm() {
         <div className="bg-white rounded-lg p-6 shadow-sm h-fit">
           <h2 className="text-xl font-bold text-gray-900 mb-4">Order Summary</h2>
 
-          {cartLoading ? (
+          {cartLoading || isMerging ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin mr-2" />
-              <span>Loading cart...</span>
+              <span>{isMerging ? "Syncing your cart..." : "Loading cart..."}</span>
             </div>
           ) : !cart?.items?.length ? (
             <div className="text-center py-8 text-gray-500">

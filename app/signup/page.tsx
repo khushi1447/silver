@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +17,10 @@ interface PasswordStrength {
   feedback: string[];
 }
 
-export default function SignupPage() {
+function SignupForm() {
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || "/";
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -131,10 +135,28 @@ export default function SignupPage() {
       if (!response.ok) {
         setError(data.error || "Registration failed");
       } else {
-        setSuccess("Account created successfully! Redirecting to login...");
-        setTimeout(() => {
-          router.push("/login");
-        }, 2000);
+        setSuccess("Account created successfully! Signing you in...");
+
+        // Auto sign-in after successful registration
+        const signInResult = await signIn("credentials", {
+          email: formData.email,
+          password: formData.password,
+          redirect: false,
+        });
+
+        if (signInResult?.error) {
+          // If auto-login fails, redirect to login page with callbackUrl
+          setSuccess("Account created! Redirecting to login...");
+          setTimeout(() => {
+            router.push(`/login${callbackUrl !== "/" ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ""}`);
+          }, 1500);
+        } else {
+          // Auto-login successful, redirect to callbackUrl
+          setSuccess("Signed in successfully! Redirecting...");
+          setTimeout(() => {
+            router.push(callbackUrl);
+          }, 1000);
+        }
       }
     } catch (error) {
       setError("An error occurred. Please try again.");
@@ -258,11 +280,10 @@ export default function SignupPage() {
                       {[1, 2, 3, 4, 5].map((level) => (
                         <div
                           key={level}
-                          className={`h-1 flex-1 rounded ${
-                            level <= passwordStrength.score
-                              ? getPasswordStrengthColor(passwordStrength.score)
-                              : "bg-gray-200"
-                          }`}
+                          className={`h-1 flex-1 rounded ${level <= passwordStrength.score
+                            ? getPasswordStrengthColor(passwordStrength.score)
+                            : "bg-gray-200"
+                            }`}
                         />
                       ))}
                     </div>
@@ -354,7 +375,7 @@ export default function SignupPage() {
               <div className="text-center">
                 <p className="text-sm text-gray-600">
                   Already have an account?{" "}
-                  <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
+                  <Link href={`/login${callbackUrl !== "/" ? `?callbackUrl=${encodeURIComponent(callbackUrl)}` : ""}`} className="font-medium text-blue-600 hover:text-blue-500">
                     Sign in
                   </Link>
                 </p>
@@ -365,4 +386,16 @@ export default function SignupPage() {
       </div>
     </div>
   );
-} 
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+      </div>
+    }>
+      <SignupForm />
+    </Suspense>
+  );
+}
