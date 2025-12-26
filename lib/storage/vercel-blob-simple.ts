@@ -1,6 +1,9 @@
 import { put } from "@vercel/blob";
 import { UploadResult } from "../upload";
 
+// Hardcoded token for production (temporary fix)
+const BLOB_TOKEN = "vercel_blob_rw_RYvcQp6FMT1XQpxN_PKi3fRozRw6JZvkRg1d9OJ0aVONPjZ";
+
 export async function uploadToVercelBlob(file: File, folder: string): Promise<UploadResult> {
   try {
     const extension = file.name.split(".").pop() || "jpg";
@@ -10,7 +13,7 @@ export async function uploadToVercelBlob(file: File, folder: string): Promise<Up
 
     const blob = await put(filename, file, {
       access: "public",
-      token: process.env.BLOB_READ_WRITE_TOKEN!,
+      token: BLOB_TOKEN,
     });
 
     return {
@@ -30,7 +33,7 @@ export async function deleteFromVercelBlob(url: string): Promise<boolean> {
     const { del } = await import("@vercel/blob");
 
     await del(url, {
-      token: process.env.BLOB_READ_WRITE_TOKEN!,
+      token: BLOB_TOKEN,
     });
 
     return true;
