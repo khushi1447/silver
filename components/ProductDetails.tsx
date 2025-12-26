@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+
 import { useState, useEffect } from "react";
 import { ShoppingCart, Heart, Share2, Star, Copy, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { type ApiProduct } from "@/types/api";
@@ -19,7 +19,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
   const [isLinkCopied, setIsLinkCopied] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [thumbnailStartIndex, setThumbnailStartIndex] = useState(0);
-  
+
   const images = product.images || [];
   const maxThumbnails = 4; // Number of thumbnails to show at once
 
@@ -38,7 +38,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       if (images.length <= 1) return;
-      
+
       if (e.key === 'ArrowLeft') {
         e.preventDefault();
         const newIndex = selectedImageIndex > 0 ? selectedImageIndex - 1 : images.length - 1;
@@ -66,7 +66,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
       // All thumbnails fit, no need to scroll
       return 0;
     }
-    
+
     // If selected image is before the visible range, scroll to show it
     if (newIndex < currentStartIndex) {
       return newIndex;
@@ -75,7 +75,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
     else if (newIndex >= currentStartIndex + maxThumbnails) {
       return Math.max(0, newIndex - maxThumbnails + 1);
     }
-    
+
     return currentStartIndex;
   };
 
@@ -98,13 +98,13 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
   // Thumbnail navigation functions
   const canScrollLeft = thumbnailStartIndex > 0;
   const canScrollRight = thumbnailStartIndex + maxThumbnails < images.length;
-  
+
   const scrollThumbnailsLeft = () => {
     if (canScrollLeft) {
       setThumbnailStartIndex(prev => Math.max(0, prev - 1));
     }
   };
-  
+
   const scrollThumbnailsRight = () => {
     if (canScrollRight) {
       setThumbnailStartIndex(prev => Math.min(images.length - maxThumbnails, prev + 1));
@@ -159,14 +159,11 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
           {/* Main Image Display */}
           {images.length > 0 ? (
             <div className="aspect-square rounded-lg overflow-hidden bg-gray-200 mb-4 relative group">
-              <Image
+              <img
                 src={images[selectedImageIndex]?.url || images[0]?.url || "/placeholder.svg"}
                 alt={images[selectedImageIndex]?.altText || images[0]?.altText || product.name}
-                fill
-                sizes="(min-width: 1024px) 50vw, 100vw"
-                className="object-cover transition-transform duration-300 group-hover:scale-105"
-                priority={selectedImageIndex === 0}
-              />              
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              />
             </div>
           ) : (
             <div className="aspect-square rounded-lg overflow-hidden bg-gray-200 mb-4 relative flex items-center justify-center">
@@ -195,24 +192,21 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                   .map((image, index) => {
                     const actualIndex = thumbnailStartIndex + index;
                     const isSelected = actualIndex === selectedImageIndex;
-                    
+
                     return (
                       <button
                         key={actualIndex}
                         onClick={() => handleImageSelect(actualIndex)}
-                        className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 hover:scale-105 relative ${
-                          isSelected
+                        className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 hover:scale-105 relative ${isSelected
                             ? "border-gray-900 ring-2 ring-gray-900 ring-opacity-20 scale-105"
                             : "border-gray-200 hover:border-gray-400"
-                        }`}
+                          }`}
                         aria-label={`View image ${actualIndex + 1} of ${images.length}`}
                       >
-                        <Image
+                        <img
                           src={image.url}
                           alt={image.altText || `${product.name} - Image ${actualIndex + 1}`}
-                          fill
-                          sizes="80px"
-                          className="object-cover"
+                          className="absolute inset-0 w-full h-full object-cover"
                         />
                       </button>
                     );
