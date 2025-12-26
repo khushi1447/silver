@@ -8,12 +8,6 @@ const nextConfig = {
   },
   images: {
     // Allow common storage/CDN hosts used by this app
-    domains: [
-      'silverline925.in',
-      'www.silverline925.in',
-      'blob.vercel-storage.com',
-      'res.cloudinary.com'
-    ],
     remotePatterns: [
       {
         protocol: 'https',
@@ -27,7 +21,7 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'blob.vercel-storage.com',
+        hostname: '**.blob.vercel-storage.com',
         pathname: '/**'
       },
       {
