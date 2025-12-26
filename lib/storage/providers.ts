@@ -140,7 +140,7 @@ export function getStorageInfo() {
     isConfigured: config.isValid,
     errors: config.errors,
     environment: {
-      STORAGE_PROVIDER: process.env.STORAGE_PROVIDER || 'local',
+      STORAGE_PROVIDER: process.env.STORAGE_PROVIDER || 'vercel-blob',
       UPLOAD_BASE_PATH: process.env.UPLOAD_BASE_PATH,
       UPLOAD_BASE_URL: process.env.UPLOAD_BASE_URL,
     }
