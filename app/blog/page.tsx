@@ -30,6 +30,15 @@ const blogPosts = [
     date: new Date().toISOString(),
     category: "Jewelry Guide",
   },
+  {
+    id: "dos-donts-wearing-statement-jewelry",
+    title: "The Do's and Don'ts of Wearing Statement Jewelry",
+    excerpt:
+      "Learn how to wear statement jewelry with elegance. Discover the key do's and don'ts to style bold necklaces, earrings, and bracelets without overwhelming your outfit.",
+    image: "/images/blog3.png",
+    date: new Date().toISOString(),
+    category: "Jewelry Tips",
+  },
 ]
 
 export default function BlogPage() {
