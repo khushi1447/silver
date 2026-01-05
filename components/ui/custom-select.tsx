@@ -40,20 +40,36 @@ export default function CustomSelect({
       }
     }
 
-    const handleScroll = () => {
+    const handleScroll = (event: Event) => {
+      // Only close if scrolling outside the dropdown
+      // Check if the scroll happened within the dropdown or select element
+      const target = event.target as Node
+      const isInsideDropdown = dropdownRef.current?.contains(target)
+      const isInsideSelect = selectRef.current?.contains(target)
+      
+      // Only close if scrolling happened outside both the dropdown and select elements
+      if (!isInsideDropdown && !isInsideSelect) {
+        setIsOpen(false)
+      }
+    }
+
+    const handleResize = () => {
       setIsOpen(false)
     }
 
-    document.addEventListener('mousedown', handleClickOutside)
-    window.addEventListener('scroll', handleScroll, true)
-    window.addEventListener('resize', handleScroll)
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      // Use capture phase to catch scroll events, but check if it's outside
+      window.addEventListener('scroll', handleScroll, true)
+      window.addEventListener('resize', handleResize)
+    }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside)
       window.removeEventListener('scroll', handleScroll, true)
-      window.removeEventListener('resize', handleScroll)
+      window.removeEventListener('resize', handleResize)
     }
-  }, [])
+  }, [isOpen])
 
   useEffect(() => {
     if (isOpen && selectRef.current && dropdownRef.current) {
@@ -112,6 +128,14 @@ export default function CustomSelect({
             maxWidth: '100vw',
             left: 0,
             right: 0
+          }}
+          onWheel={(e) => {
+            // Prevent scroll events inside dropdown from closing it
+            e.stopPropagation()
+          }}
+          onTouchMove={(e) => {
+            // Prevent touch scroll events inside dropdown from closing it
+            e.stopPropagation()
           }}
         >
           {options.map((option) => (
