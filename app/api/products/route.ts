@@ -5,6 +5,21 @@ import { prisma } from "@/lib/db";
 import { z } from "zod";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
+import {
+  normalizeOptionalTrimmedString,
+  parseDecimalFromUnknown,
+  parseIntFromUnknown,
+} from "@/lib/validation/input-normalize";
+
+function zodFieldErrors(error: z.ZodError) {
+  const fieldErrors: Record<string, string[]> = {}
+  for (const issue of error.issues) {
+    const key = issue.path.join(".") || "_"
+    fieldErrors[key] ??= []
+    fieldErrors[key].push(issue.message)
+  }
+  return fieldErrors
+}
 
 // Image schema for product images
 const imageSchema = z.object({
@@ -15,21 +30,21 @@ const imageSchema = z.object({
     },
     "Image URL must be a valid absolute URL or relative path starting with /"
   ),
-  altText: z.string().optional(),
+  altText: z.preprocess(normalizeOptionalTrimmedString, z.string().max(200)).optional(),
   isPrimary: z.boolean().default(false),
 })
 
 // Validation schema for creating products
 const createProductSchema = z.object({
-  name: z.string().min(1, "Product name is required"),
-  description: z.string().min(1, "Description is required"),
-  shortDescription: z.string().optional(),
-  price: z.number().positive("Price must be positive"),
-  stock: z.number().int().min(0, "Stock must be non-negative"),
-  lowStockThreshold: z.number().int().min(0).default(5),
-  categoryId: z.number().int().positive("Category is required"),
-  weight: z.number().positive().optional(),
-  size: z.string().optional(),
+  name: z.string().transform((v) => v.trim()).pipe(z.string().min(1, "Product name is required")),
+  description: z.string().transform((v) => v.trim()).pipe(z.string().min(1, "Description is required")),
+  shortDescription: z.preprocess(normalizeOptionalTrimmedString, z.string().max(500)).optional(),
+  price: z.preprocess(parseDecimalFromUnknown, z.number().positive("Price must be positive")),
+  stock: z.preprocess(parseIntFromUnknown, z.number().int().min(0, "Stock must be non-negative")),
+  lowStockThreshold: z.preprocess(parseIntFromUnknown, z.number().int().min(0)).default(5),
+  categoryId: z.preprocess(parseIntFromUnknown, z.number().int().positive("Category is required")),
+  weight: z.preprocess(parseDecimalFromUnknown, z.number().positive()).optional(),
+  size: z.preprocess(normalizeOptionalTrimmedString, z.string().max(100)).optional(),
   images: z.array(imageSchema).min(3, "Minimum 3 images required").max(10, "Maximum 10 images allowed"),
 });
 
@@ -217,7 +232,8 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           {
             error: "Validation failed",
-            details: validationError.errors
+            details: validationError.issues,
+            fieldErrors: zodFieldErrors(validationError),
           },
           { status: 400 }
         );

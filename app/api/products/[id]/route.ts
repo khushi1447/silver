@@ -5,6 +5,21 @@ import { prisma } from "@/lib/db";
 import { z } from "zod";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
+import {
+  normalizeOptionalTrimmedString,
+  parseDecimalFromUnknown,
+  parseIntFromUnknown,
+} from "@/lib/validation/input-normalize";
+
+function zodFieldErrors(error: z.ZodError) {
+  const fieldErrors: Record<string, string[]> = {}
+  for (const issue of error.issues) {
+    const key = issue.path.join(".") || "_"
+    fieldErrors[key] ??= []
+    fieldErrors[key].push(issue.message)
+  }
+  return fieldErrors
+}
 
 // Image schema for product images
 const imageSchema = z.object({
@@ -15,21 +30,21 @@ const imageSchema = z.object({
     },
     "Image URL must be a valid absolute URL or relative path starting with /"
   ),
-  altText: z.string().optional(),
+  altText: z.preprocess(normalizeOptionalTrimmedString, z.string().max(200)).optional(),
   isPrimary: z.boolean().default(false),
 })
 
 // Validation schema for updating products
 const updateProductSchema = z.object({
-  name: z.string().min(1, "Product name is required").optional(),
-  description: z.string().optional(),
-  shortDescription: z.string().optional(),
-  price: z.number().positive("Price must be positive").optional(),
-  stock: z.number().int().min(0, "Stock must be non-negative").optional(),
-  lowStockThreshold: z.number().int().min(0).optional(),
-  categoryId: z.number().int().positive("Category is required").optional(),
-  weight: z.number().positive().optional(),
-  size: z.string().optional(),
+  name: z.string().transform((v) => v.trim()).pipe(z.string().min(1, "Product name is required")).optional(),
+  description: z.string().transform((v) => v.trim()).optional(),
+  shortDescription: z.preprocess(normalizeOptionalTrimmedString, z.string().max(500)).optional(),
+  price: z.preprocess(parseDecimalFromUnknown, z.number().positive("Price must be positive")).optional(),
+  stock: z.preprocess(parseIntFromUnknown, z.number().int().min(0, "Stock must be non-negative")).optional(),
+  lowStockThreshold: z.preprocess(parseIntFromUnknown, z.number().int().min(0)).optional(),
+  categoryId: z.preprocess(parseIntFromUnknown, z.number().int().positive("Category is required")).optional(),
+  weight: z.preprocess(parseDecimalFromUnknown, z.number().positive()).optional(),
+  size: z.preprocess(normalizeOptionalTrimmedString, z.string().max(100)).optional(),
   images: z.array(imageSchema).min(0, "Images required").max(10, "Maximum 10 images allowed").optional(),
 });
 
@@ -202,7 +217,22 @@ export async function PUT(
     }
     
     const body = await request.json();
-    const validatedData = updateProductSchema.parse(body);
+    let validatedData;
+    try {
+      validatedData = updateProductSchema.parse(body);
+    } catch (validationError) {
+      if (validationError instanceof z.ZodError) {
+        return NextResponse.json(
+          {
+            error: "Validation failed",
+            details: validationError.issues,
+            fieldErrors: zodFieldErrors(validationError),
+          },
+          { status: 400 }
+        )
+      }
+      throw validationError
+    }
     
     // Check if product exists
     const existingProduct = await prisma.product.findUnique({

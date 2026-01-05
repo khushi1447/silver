@@ -14,6 +14,34 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ImageUpload } from "@/components/ui/image-upload"
 
+function parsePriceInput(raw: string): number | null {
+  const s = raw.trim().replace(/\s+/g, "")
+  if (!s) return null
+  if (s.includes(",") && s.includes(".")) return null
+  if (/^\d{1,3}(,\d{3})+$/.test(s)) return Number(s.replace(/,/g, ""))
+  if (/^\d+,\d{1,2}$/.test(s)) return Number(s.replace(",", "."))
+  if (!/^\d+(\.\d{1,2})?$/.test(s)) return null
+  return Number(s)
+}
+
+function parseIntInput(raw: string): number | null {
+  const s = raw.trim().replace(/\s+/g, "")
+  if (!s) return null
+  if (/^\d{1,3}(,\d{3})+$/.test(s)) return Number(s.replace(/,/g, ""))
+  if (!/^\d+$/.test(s)) return null
+  return Number(s)
+}
+
+function apiErrorMessage(data: any): string {
+  if (data?.fieldErrors && typeof data.fieldErrors === "object") {
+    const firstKey = Object.keys(data.fieldErrors)[0]
+    const firstMsg = Array.isArray(data.fieldErrors[firstKey]) ? data.fieldErrors[firstKey][0] : undefined
+    if (firstKey && firstMsg) return `${firstKey}: ${firstMsg}`
+  }
+  if (typeof data?.error === "string") return data.error
+  return "Failed to update product"
+}
+
 interface ProductFormData {
   name: string
   description: string
@@ -124,10 +152,13 @@ export default function EditProductPage() {
   const validateForm = () => {
     const errors: string[] = []
 
+    const parsedPrice = parsePriceInput(formData.price)
+    const parsedStock = parseIntInput(formData.stock)
+
     if (!formData.name.trim()) errors.push("Product name is required")
     if (!formData.description.trim()) errors.push("Description is required")
-    if (!formData.price || parseFloat(formData.price) <= 0) errors.push("Valid price is required")
-    if (!formData.stock || parseInt(formData.stock) < 0) errors.push("Valid stock quantity is required")
+    if (parsedPrice === null || !Number.isFinite(parsedPrice) || parsedPrice <= 0) errors.push("Valid price is required")
+    if (parsedStock === null || !Number.isFinite(parsedStock) || parsedStock < 0) errors.push("Valid stock quantity is required")
     if (!formData.categoryId) errors.push("Category is required")
     if (!formData.size.trim()) errors.push("Size is required")
     if (formData.images.length < 3) errors.push("Minimum 3 images required")
@@ -212,12 +243,20 @@ export default function EditProductPage() {
         isPrimary: img.isPrimary
       }))
 
+      const parsedPrice = parsePriceInput(formData.price)
+      const parsedStock = parseIntInput(formData.stock)
+      const parsedCategoryId = parseIntInput(formData.categoryId)
+
+      if (parsedPrice === null || parsedStock === null || parsedCategoryId === null) {
+        throw new Error("Invalid numeric fields (price/stock/category).")
+      }
+
       const productData = {
         name: formData.name.trim(),
         description: formData.description.trim(),
-        price: parseFloat(formData.price),
-        stock: parseInt(formData.stock),
-        categoryId: parseInt(formData.categoryId),
+        price: parsedPrice,
+        stock: parsedStock,
+        categoryId: parsedCategoryId,
         size: formData.size.trim() || null,
         images: imageData
       }
@@ -231,8 +270,8 @@ export default function EditProductPage() {
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to update product')
+        const errorData = await response.json().catch(() => null)
+        throw new Error(apiErrorMessage(errorData))
       }
 
       const result = await response.json()
@@ -347,9 +386,8 @@ export default function EditProductPage() {
                   <Label htmlFor="price">Price *</Label>
                   <Input
                     id="price"
-                    type="number"
-                    step="0.01"
-                    min="0"
+                    type="text"
+                    inputMode="decimal"
                     value={formData.price}
                     onChange={(e) => handleInputChange("price", e.target.value)}
                     placeholder="0.00"
@@ -360,8 +398,8 @@ export default function EditProductPage() {
                   <Label htmlFor="stock">Stock Quantity *</Label>
                   <Input
                     id="stock"
-                    type="number"
-                    min="0"
+                    type="text"
+                    inputMode="numeric"
                     value={formData.stock}
                     onChange={(e) => handleInputChange("stock", e.target.value)}
                     placeholder="0"
