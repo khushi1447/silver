@@ -2,6 +2,27 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../lib/auth";
 import { prisma } from "@/lib/db";
+import { z } from "zod";
+import { parseIntFromUnknown } from "@/lib/validation/input-normalize";
+
+const cartPutItemSchema = z.object({
+  productId: z.preprocess(parseIntFromUnknown, z.number().int().positive()),
+  quantity: z.preprocess(parseIntFromUnknown, z.number().int().min(1).max(999)),
+});
+
+type CartPutItem = z.infer<typeof cartPutItemSchema>;
+type ProductStockRow = { id: number; stock: number };
+type CartItemWithProductRow = {
+  id: number;
+  productId: number;
+  quantity: number;
+  product: {
+    name: string;
+    price: any;
+    stock: number;
+    images: Array<{ url: string; isPrimary?: boolean }>;
+  };
+};
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,14 +38,21 @@ export async function GET(request: NextRequest) {
     const userId = parseInt(session.user.id);
 
     // Get user's cart items with product details
-    const cartItems = await prisma.cartItem.findMany({
+    const cartItems: CartItemWithProductRow[] = await prisma.cartItem.findMany({
       where: { userId },
-      include: {
+      select: {
+        id: true,
+        productId: true,
+        quantity: true,
         product: {
-          include: {
+          select: {
+            name: true,
+            price: true,
+            stock: true,
             images: {
               where: { isPrimary: true },
               take: 1,
+              select: { url: true, isPrimary: true },
             },
           },
         },
@@ -32,7 +60,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Transform cart items to match frontend interface
-    const items = cartItems.map(item => ({
+    const items = cartItems.map((item: CartItemWithProductRow) => ({
       id: item.id,
       productId: item.productId,
       product: {
@@ -44,8 +72,14 @@ export async function GET(request: NextRequest) {
       stock: item.product.stock,
     }));
 
-    const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-    const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const totalItems = items.reduce(
+      (sum: number, item: (typeof items)[number]) => sum + item.quantity,
+      0
+    );
+    const subtotal = items.reduce(
+      (sum: number, item: (typeof items)[number]) => sum + (item.price * item.quantity),
+      0
+    );
 
     return NextResponse.json({
       items,
@@ -81,17 +115,38 @@ export async function PUT(request: NextRequest) {
       where: { userId },
     });
 
-    // Add new cart items
+    // Add new cart items (validate and filter out stale productIds)
     if (items && items.length > 0) {
-      const cartItems = items.map((item: any) => ({
-        userId,
-        productId: item.productId,
-        quantity: item.quantity,
-      }));
+      const parsed: CartPutItem[] = (Array.isArray(items) ? items : [])
+        .map((item: unknown) => cartPutItemSchema.safeParse(item))
+        .filter((r) => r.success)
+        .map((r) => (r as z.SafeParseSuccess<CartPutItem>).data);
 
-      await prisma.cartItem.createMany({
-        data: cartItems,
-      });
+      const ids = Array.from(new Set(parsed.map((i) => i.productId)));
+      const products: ProductStockRow[] = ids.length
+        ? await prisma.product.findMany({
+            where: { id: { in: ids } },
+            select: { id: true, stock: true },
+          })
+        : [];
+
+      const productById = new Map<number, ProductStockRow>(
+        products.map((p: ProductStockRow) => [p.id, p])
+      );
+
+      const cartItems = parsed
+        .map((i) => {
+          const product = productById.get(i.productId);
+          if (!product) return null;
+          const clampedQuantity = Math.min(i.quantity, Math.max(product.stock, 0));
+          if (clampedQuantity <= 0) return null;
+          return { userId, productId: i.productId, quantity: clampedQuantity };
+        })
+        .filter(Boolean) as Array<{ userId: number; productId: number; quantity: number }>;
+
+      if (cartItems.length) {
+        await prisma.cartItem.createMany({ data: cartItems });
+      }
     }
 
     return NextResponse.json({ message: "Cart updated successfully" });

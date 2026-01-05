@@ -42,6 +42,15 @@ function apiErrorMessage(data: any): string {
   return "Failed to create product"
 }
 
+async function readErrorPayload(response: Response): Promise<any> {
+  const contentType = response.headers.get("content-type") || ""
+  if (contentType.includes("application/json")) {
+    return response.json().catch(() => null)
+  }
+  const text = await response.text().catch(() => "")
+  return { error: text ? text.slice(0, 200) : `HTTP error! status: ${response.status}` }
+}
+
 interface ProductFormData {
   name: string
   description: string
@@ -75,7 +84,7 @@ export default function AddProductPage() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch('/api/categories')
+        const response = await fetch('/api/categories', { credentials: 'include' })
         if (response.ok) {
           const data = await response.json()
           setCategories(data)
@@ -171,13 +180,14 @@ export default function AddProductPage() {
         const uploadResponse = await fetch('/api/upload/images', {
           method: 'POST',
           body: formDataForUpload,
+          credentials: 'include',
         })
 
         console.log('Upload response status:', uploadResponse.status)
         console.log('Upload response headers:', Object.fromEntries(uploadResponse.headers.entries()))
 
         if (!uploadResponse.ok) {
-          const errorData = await uploadResponse.json()
+          const errorData = await readErrorPayload(uploadResponse)
           console.error('Image upload failed:', errorData)
           throw new Error(errorData.error || 'Image upload failed')
         }
@@ -241,11 +251,12 @@ export default function AddProductPage() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(productData),
       })
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => null)
+        const errorData = await readErrorPayload(response)
         throw new Error(apiErrorMessage(errorData))
       }
 

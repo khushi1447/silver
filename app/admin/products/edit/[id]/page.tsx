@@ -42,6 +42,15 @@ function apiErrorMessage(data: any): string {
   return "Failed to update product"
 }
 
+async function readErrorPayload(response: Response): Promise<any> {
+  const contentType = response.headers.get("content-type") || ""
+  if (contentType.includes("application/json")) {
+    return response.json().catch(() => null)
+  }
+  const text = await response.text().catch(() => "")
+  return { error: text ? text.slice(0, 200) : `HTTP error! status: ${response.status}` }
+}
+
 interface ProductFormData {
   name: string
   description: string
@@ -77,7 +86,7 @@ export default function EditProductPage() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch('/api/categories')
+        const response = await fetch('/api/categories', { credentials: 'include' })
         if (response.ok) {
           const data = await response.json()
           setCategories(data)
@@ -98,7 +107,7 @@ export default function EditProductPage() {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await fetch(`/api/products/${params.id}`)
+        const response = await fetch(`/api/products/${params.id}`, { credentials: 'include' })
         if (!response.ok) {
           throw new Error('Failed to fetch product')
         }
@@ -205,10 +214,11 @@ export default function EditProductPage() {
         const uploadResponse = await fetch('/api/upload/images', {
           method: 'POST',
           body: formDataForUpload,
+          credentials: 'include',
         })
 
         if (!uploadResponse.ok) {
-          const errorData = await uploadResponse.json()
+          const errorData = await readErrorPayload(uploadResponse)
           throw new Error(errorData.error || 'Image upload failed')
         }
 
@@ -266,11 +276,12 @@ export default function EditProductPage() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(productData),
       })
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => null)
+        const errorData = await readErrorPayload(response)
         throw new Error(apiErrorMessage(errorData))
       }
 

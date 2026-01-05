@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { z } from "zod";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
+import type { Prisma } from "@prisma/client";
 import {
   normalizeOptionalTrimmedString,
   parseDecimalFromUnknown,
@@ -260,10 +261,10 @@ export async function POST(request: NextRequest) {
     console.log("Starting database transaction...");
     let product;
     try {
-      product = await prisma.$transaction(async (tx) => {
+      product = await prisma.$transaction(async (trx: Prisma.TransactionClient) => {
         // Create the product
         console.log("Creating product...");
-        const newProduct = await tx.product.create({
+        const newProduct = await trx.product.create({
           data: {
             name: validatedData.name,
             description: validatedData.description,
@@ -289,14 +290,14 @@ export async function POST(request: NextRequest) {
             sortOrder: index,
           }))
 
-          await tx.productImage.createMany({
+          await trx.productImage.createMany({
             data: imageData,
           })
           console.log("Images created successfully");
         }
 
         // Return product with images
-        return tx.product.findUnique({
+        return trx.product.findUnique({
           where: { id: newProduct.id },
           include: {
             category: true,

@@ -6,8 +6,61 @@ export function normalizeOptionalTrimmedString(value: unknown): string | undefin
   return trimmed.length ? trimmed : undefined
 }
 
-function stripSpaces(value: string): string {
-  return value.replace(/\s+/g, "")
+function normalizeNumericString(raw: string): string {
+  // Normalize common mobile/locale variants before regex parsing.
+  // - Converts Arabic-Indic, Eastern Arabic-Indic, and Fullwidth digits to ASCII
+  // - Converts common decimal/thousands separators to '.' and ','
+  // - Removes whitespace
+  const trimmed = raw.trim()
+
+  // Map of digit ranges to ASCII
+  const arabicIndicOffset = "٠".charCodeAt(0) // U+0660
+  const easternArabicIndicOffset = "۰".charCodeAt(0) // U+06F0
+  const fullWidthOffset = "０".charCodeAt(0) // U+FF10
+
+  let out = ""
+  for (const ch of trimmed) {
+    const code = ch.charCodeAt(0)
+
+    // Arabic-Indic digits (٠-٩)
+    if (code >= 0x0660 && code <= 0x0669) {
+      out += String(code - 0x0660)
+      continue
+    }
+
+    // Eastern Arabic-Indic digits (۰-۹)
+    if (code >= 0x06f0 && code <= 0x06f9) {
+      out += String(code - 0x06f0)
+      continue
+    }
+
+    // Fullwidth digits (０-９)
+    if (code >= 0xff10 && code <= 0xff19) {
+      out += String(code - 0xff10)
+      continue
+    }
+
+    // Arabic decimal separator (٫) and fullwidth dot (．)
+    if (ch === "٫" || ch === "．") {
+      out += "."
+      continue
+    }
+
+    // Arabic thousands separator (٬) and fullwidth comma (，)
+    if (ch === "٬" || ch === "，") {
+      out += ","
+      continue
+    }
+
+    // Strip whitespace (including NBSP and most unicode spaces)
+    if (/\s/u.test(ch)) {
+      continue
+    }
+
+    out += ch
+  }
+
+  return out
 }
 
 function isThousandsSeparatedInt(value: string): boolean {
@@ -30,7 +83,7 @@ export function parseDecimalFromUnknown(value: unknown): number | unknown {
   if (typeof value === "number") return value
   if (typeof value !== "string") return value
 
-  const raw = stripSpaces(value.trim())
+  const raw = normalizeNumericString(value)
   if (!raw) return value
 
   const hasComma = raw.includes(",")
@@ -74,7 +127,7 @@ export function parseIntFromUnknown(value: unknown): number | unknown {
   if (typeof value === "number") return value
   if (typeof value !== "string") return value
 
-  const raw = stripSpaces(value.trim())
+  const raw = normalizeNumericString(value)
   if (!raw) return value
 
   if (isThousandsSeparatedInt(raw)) {

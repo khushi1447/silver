@@ -2,6 +2,28 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { z } from "zod";
+import { parseIntFromUnknown } from "@/lib/validation/input-normalize";
+
+const guestCartItemSchema = z.object({
+  productId: z.preprocess(parseIntFromUnknown, z.number().int().positive()),
+  quantity: z.preprocess(parseIntFromUnknown, z.number().int().min(1).max(999)),
+});
+
+type GuestCartItem = z.infer<typeof guestCartItemSchema>;
+type CartItemRow = { id: number; productId: number; quantity: number };
+type ProductStockRow = { id: number; stock: number };
+type CartItemWithProductRow = {
+  id: number;
+  productId: number;
+  quantity: number;
+  product: {
+    name: string;
+    price: any;
+    stock: number;
+    images: Array<{ url: string }>;
+  };
+};
 
 export async function POST(request: NextRequest) {
   try {
@@ -26,56 +48,84 @@ export async function POST(request: NextRequest) {
     }
 
     // Get existing user cart items
-    const existingCartItems = await prisma.cartItem.findMany({
+    const existingCartItems: CartItemRow[] = await prisma.cartItem.findMany({
       where: { userId },
-      include: { product: true },
+      select: { id: true, productId: true, quantity: true },
     });
 
     // Create a map of existing items for quick lookup
-    const existingItemsMap = new Map(
-      existingCartItems.map(item => [item.productId, item])
+    const existingItemsMap = new Map<number, CartItemRow>(
+      existingCartItems.map((item: CartItemRow) => [item.productId, item])
     );
 
-    // Process guest cart items
-    for (const guestItem of guestCart) {
+    // Validate and normalize guest cart items
+    const parsedGuestItems: GuestCartItem[] = guestCart
+      .map((item: unknown) => guestCartItemSchema.safeParse(item))
+      .filter((r) => r.success)
+      .map((r) => (r as z.SafeParseSuccess<GuestCartItem>).data);
+
+    const guestProductIds = Array.from(new Set(parsedGuestItems.map((i) => i.productId)));
+    const products: ProductStockRow[] = guestProductIds.length
+      ? await prisma.product.findMany({
+          where: { id: { in: guestProductIds } },
+          select: { id: true, stock: true },
+        })
+      : [];
+
+    const productById = new Map<number, ProductStockRow>(
+      products.map((p: ProductStockRow) => [p.id, p])
+    );
+
+    // Process guest cart items (skip stale productIds; clamp quantity to stock)
+    for (const guestItem of parsedGuestItems) {
+      const product = productById.get(guestItem.productId);
+      if (!product) continue;
+
+      const clampedQuantity = Math.min(guestItem.quantity, Math.max(product.stock, 0));
+      if (clampedQuantity <= 0) continue;
+
       const existingItem = existingItemsMap.get(guestItem.productId);
 
       if (existingItem) {
-        // Update quantity if item already exists
+        const newQuantity = Math.min(existingItem.quantity + clampedQuantity, product.stock);
         await prisma.cartItem.update({
           where: { id: existingItem.id },
-          data: {
-            quantity: existingItem.quantity + guestItem.quantity,
-          },
+          data: { quantity: newQuantity },
         });
       } else {
-        // Add new item to cart
         await prisma.cartItem.create({
           data: {
             userId,
             productId: guestItem.productId,
-            quantity: guestItem.quantity,
+            quantity: clampedQuantity,
           },
         });
       }
     }
 
     // Get updated cart
-    const updatedCartItems = await prisma.cartItem.findMany({
+    const updatedCartItems: CartItemWithProductRow[] = await prisma.cartItem.findMany({
       where: { userId },
-      include: {
+      select: {
+        id: true,
+        productId: true,
+        quantity: true,
         product: {
-          include: {
+          select: {
+            name: true,
+            price: true,
+            stock: true,
             images: {
               where: { isPrimary: true },
               take: 1,
+              select: { url: true },
             },
           },
         },
       },
     });
 
-    const items = updatedCartItems.map(item => ({
+    const items = updatedCartItems.map((item: CartItemWithProductRow) => ({
       id: item.id,
       productId: item.productId,
       name: item.product.name,
@@ -85,8 +135,14 @@ export async function POST(request: NextRequest) {
       stock: item.product.stock,
     }));
 
-    const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-    const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const totalItems = items.reduce(
+      (sum: number, item: (typeof items)[number]) => sum + item.quantity,
+      0
+    );
+    const subtotal = items.reduce(
+      (sum: number, item: (typeof items)[number]) => sum + (item.price * item.quantity),
+      0
+    );
 
     return NextResponse.json({
       message: "Cart merged successfully",
