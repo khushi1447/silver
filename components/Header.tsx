@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { ShoppingBag, Menu, X, Search, Heart, LogOut, User } from "lucide-react";
+import { ShoppingBag, Menu, X, Search, Heart, LogOut, User, ChevronDown, ChevronRight } from "lucide-react";
 import { useUnifiedCart } from "@/hooks/useUnifiedCart";
 import { useUnifiedWishlist } from "@/hooks/useUnifiedWishlist";
 import { useAuth } from "@/hooks/useAuth";
@@ -14,6 +14,8 @@ export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isCollectionHovered, setIsCollectionHovered] = useState(false);
+  const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
   const { cart } = useUnifiedCart();
   const { isAuthenticated } = useAuth();
   const { count: wishlistCount } = useUnifiedWishlist();
@@ -33,12 +35,72 @@ export default function Header() {
 
   const navigation = [
     { name: "Home", href: "/" },
-    { name: "Shop", href: "/shop" },
     { name: "About", href: "/about" },
+    { name: "Collection", href: "#", hasDropdown: true },
+    { name: "Shop", href: "/shop" },
     { name: "Blog", href: "/blog" },
-    { name: "Track Order", href: "/track" },
     { name: "Contact", href: "/contact" },
   ];
+
+  const collectionMenu = {
+    categories: [
+      {
+        name: "Chains",
+        items: [
+          { name: "Silver Cuban chains for men", href: "/collection/silver-cuban-chains-for-men" },
+        ],
+      },
+      {
+        name: "Pendants",
+        items: [
+          { name: "Silver pendants for women in Ahmedabad", href: "/collection/silver-pendants-women-ahmedabad" },
+          { name: "Delicate silver pendant necklace", href: "/shop?category=pendants&subcategory=delicate" },
+        ],
+      },
+      {
+        name: "Necklaces",
+        items: [
+          { name: "Best silver necklace for womens", href: "/shop?category=necklaces&subcategory=women" },
+        ],
+      },
+      {
+        name: "Bracelets",
+        items: [
+          { name: "Best mens sterling silver bracelet", href: "/shop?category=bracelets&subcategory=men" },
+          { name: "Best womens sterling silver bracelet", href: "/shop?category=bracelets&subcategory=women" },
+        ],
+      },
+      {
+        name: "Rings",
+        subcategories: [
+          {
+            name: "Men's Rings",
+            items: [
+              { name: "Best silver rings for men", href: "/shop?category=rings&subcategory=men" },
+            ],
+          },
+          {
+            name: "Women's Rings",
+            items: [
+              { name: "Best silver rings for women", href: "/shop?category=rings&subcategory=women" },
+              { name: "Unique sterling rings for women", href: "/shop?category=rings&subcategory=women-unique" },
+            ],
+          },
+          {
+            name: "Special/Theme Rings",
+            items: [
+              { name: "Silver infinity ring price", href: "/shop?category=rings&subcategory=infinity" },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+
+  // Sort categories alphabetically
+  const sortedCategories = [...collectionMenu.categories].sort((a, b) => 
+    a.name.localeCompare(b.name)
+  );
 
   return (
     <header className="bg-white/95 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50 light-shadow">
@@ -62,17 +124,166 @@ export default function Header() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex space-x-4 xl:space-x-6">
-            {navigation.map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className="text-gray-700 hover:text-purple-600 transition-all duration-300 font-medium relative group text-xs xl:text-sm whitespace-nowrap"
-              >
-                {item.name}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 group-hover:w-full transition-all duration-300"></span>
-              </Link>
-            ))}
+          <nav className="hidden lg:flex items-center space-x-3 xl:space-x-4">
+            {navigation.map((item) => {
+              if (item.hasDropdown) {
+                return (
+                  <div
+                    key={item.name}
+                    className="relative"
+                    onMouseEnter={() => setIsCollectionHovered(true)}
+                    onMouseLeave={() => setIsCollectionHovered(false)}
+                  >
+                    <span className="text-gray-700 hover:text-purple-600 transition-all duration-300 font-medium relative group text-sm xl:text-base whitespace-nowrap cursor-pointer flex items-center gap-1">
+                      {item.name}
+                      <ChevronDown className="w-4 h-4 transition-transform group-hover:rotate-180" />
+                      <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 group-hover:w-full transition-all duration-300"></span>
+                    </span>
+                    
+                    {/* Collection Dropdown */}
+                    {isCollectionHovered && (
+                      <div 
+                        className={`absolute top-full left-0 mt-2 bg-white rounded-none shadow-xl border border-gray-100 p-4 sm:p-5 md:p-6 z-50 animate-in fade-in-0 zoom-in-95 ${
+                          hoveredCategory 
+                            ? 'w-[90vw] sm:w-[600px] max-w-[600px]' 
+                            : 'w-[90vw] sm:w-auto min-w-[200px] max-w-[250px]'
+                        }`}
+                        onMouseEnter={() => setIsCollectionHovered(true)}
+                        onMouseLeave={() => {
+                          setIsCollectionHovered(false);
+                          setHoveredCategory(null);
+                        }}
+                      >
+                        <div className="text-base sm:text-lg font-bold text-black mb-3 sm:mb-4 pb-2 sm:pb-3 border-b border-gray-200">
+                          Categories
+                        </div>
+                        <div className={`flex flex-col ${hoveredCategory ? 'lg:flex-row' : ''} gap-4 lg:gap-6 relative`}
+                          onMouseLeave={() => setHoveredCategory(null)}
+                        >
+                          {/* Left Column - Categories */}
+                          <div className={`flex flex-col gap-0 ${hoveredCategory ? 'w-full lg:w-auto lg:min-w-[200px]' : 'w-full'}`}>
+                            {sortedCategories.map((category, idx) => {
+                              // Check if category has direct items
+                              const hasItems = category.items && category.items.length > 0;
+                              
+                              // Check if category has subcategories with items
+                              const hasSubcategoriesWithItems = category.subcategories && 
+                                category.subcategories.some(sub => sub.items && sub.items.length > 0);
+                              
+                              // Only show arrow and allow hover if there's actual content
+                              const hasContent = hasItems || hasSubcategoriesWithItems;
+                              const showItems = hoveredCategory === category.name;
+                              
+                              return (
+                                <div 
+                                  key={idx} 
+                                  className="relative"
+                                  onMouseEnter={() => {
+                                    if (hasContent) {
+                                      setHoveredCategory(category.name);
+                                    }
+                                  }}
+                                >
+                                  <h3 className={`font-semibold text-xs sm:text-sm flex items-center justify-between gap-2 group/category cursor-pointer transition-colors py-2 px-2 ${
+                                    showItems ? 'text-purple-600 bg-purple-50' : 'text-gray-700 hover:text-purple-600 hover:bg-gray-50'
+                                  }`}>
+                                    <span>{category.name}</span>
+                                    {hasContent && (
+                                      <ChevronRight className={`w-3 h-3 sm:w-4 sm:h-4 transition-colors ${
+                                        showItems ? 'text-purple-600' : 'text-gray-400 group-hover/category:text-purple-600'
+                                      }`} />
+                                    )}
+                                  </h3>
+                                </div>
+                              );
+                            })}
+                          </div>
+                          
+                          {/* Right Column - Sub-items - Only show when there's content */}
+                          {hoveredCategory && (() => {
+                            const category = sortedCategories.find(cat => cat.name === hoveredCategory);
+                            if (!category) return null;
+                            
+                            // Check if category has direct items
+                            const hasItems = category.items && category.items.length > 0;
+                            
+                            // Check if category has subcategories with items
+                            const hasSubcategoriesWithItems = category.subcategories && 
+                              category.subcategories.some(sub => sub.items && sub.items.length > 0);
+                            
+                            // Only render if there's actual content
+                            if (!hasItems && !hasSubcategoriesWithItems) return null;
+                            
+                            // Filter out empty subcategories
+                            const validSubcategories = category.subcategories?.filter(
+                              sub => sub.items && sub.items.length > 0
+                            ) || [];
+                            
+                            return (
+                              <div className="flex-1 w-full lg:w-auto lg:min-w-[250px] border-t lg:border-t-0 lg:border-l border-gray-200 pt-4 lg:pt-0 lg:pl-6"
+                                onMouseEnter={() => setHoveredCategory(category.name)}
+                              >
+                                {validSubcategories.length > 0 ? (
+                                  <div className="space-y-3 sm:space-y-4">
+                                    {validSubcategories.map((subcategory, subIdx) => (
+                                      <div key={subIdx} className="mb-3 sm:mb-4 last:mb-0">
+                                        <h4 className="font-medium text-black text-xs mb-2 sm:mb-3 pb-1 sm:pb-2 border-b border-gray-200">{subcategory.name}</h4>
+                                        <div className="space-y-1 sm:space-y-2">
+                                          {subcategory.items.map((subItem, itemIdx) => (
+                                            <Link
+                                              key={itemIdx}
+                                              href={subItem.href}
+                                              className="block text-xs text-gray-700 hover:text-purple-600 transition-colors py-1"
+                                              onClick={() => {
+                                                setIsCollectionHovered(false);
+                                                setHoveredCategory(null);
+                                              }}
+                                            >
+                                              {subItem.name}
+                                            </Link>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : hasItems ? (
+                                  <div className="space-y-1 sm:space-y-2">
+                                    {category.items.map((subItem, itemIdx) => (
+                                      <Link
+                                        key={itemIdx}
+                                        href={subItem.href}
+                                        className="block text-xs text-gray-700 hover:text-purple-600 transition-colors py-1"
+                                        onClick={() => {
+                                          setIsCollectionHovered(false);
+                                          setHoveredCategory(null);
+                                        }}
+                                      >
+                                        {subItem.name}
+                                      </Link>
+                                    ))}
+                                  </div>
+                                ) : null}
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+              
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className="text-gray-700 hover:text-purple-600 transition-all duration-300 font-medium relative group text-sm xl:text-base whitespace-nowrap flex items-center"
+                >
+                  {item.name}
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 group-hover:w-full transition-all duration-300"></span>
+                </Link>
+              );
+            })}
           </nav>
 
           {/* Right side icons */}
@@ -208,16 +419,63 @@ export default function Header() {
               </div>
 
               {/* Navigation Links */}
-              {navigation.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className="text-gray-700 hover:text-purple-600 transition-colors duration-200 font-medium px-3 sm:px-4 py-2 hover:bg-purple-50 rounded-lg text-sm sm:text-base"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {item.name}
-                </Link>
-              ))}
+              {navigation.map((item) => {
+                if (item.hasDropdown) {
+                  return (
+                    <div key={item.name} className="space-y-1">
+                      <div className="text-black font-medium px-3 sm:px-4 py-2 text-sm sm:text-base">
+                        {item.name}
+                      </div>
+                      <div className="pl-4 space-y-1 border-l-2 border-purple-200">
+                        {collectionMenu.categories.map((category, idx) => (
+                          <div key={idx} className="space-y-1">
+                            <div className="text-black font-semibold text-xs px-3 py-1">{category.name}</div>
+                            {category.subcategories ? (
+                              category.subcategories.map((subcategory, subIdx) => (
+                                <div key={subIdx} className="pl-2 space-y-0.5">
+                                  <div className="text-black font-medium text-xs px-3 py-0.5">{subcategory.name}</div>
+                                  {subcategory.items.map((subItem, itemIdx) => (
+                                    <Link
+                                      key={itemIdx}
+                                      href={subItem.href}
+                                      className="block text-black hover:text-purple-600 transition-colors text-xs px-6 py-1"
+                                      onClick={() => setIsMenuOpen(false)}
+                                    >
+                                      • {subItem.name}
+                                    </Link>
+                                  ))}
+                                </div>
+                              ))
+                            ) : (
+                              category.items.map((subItem, itemIdx) => (
+                                <Link
+                                  key={itemIdx}
+                                  href={subItem.href}
+                                  className="block text-black hover:text-purple-600 transition-colors text-xs px-6 py-1"
+                                  onClick={() => setIsMenuOpen(false)}
+                                >
+                                  • {subItem.name}
+                                </Link>
+                              ))
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                }
+                
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    className="text-gray-700 hover:text-purple-600 transition-colors duration-200 font-medium px-3 sm:px-4 py-2 hover:bg-purple-50 rounded-lg text-sm sm:text-base"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {item.name}
+                  </Link>
+                );
+              })}
 
               {/* Mobile Auth button */}
               <div className="border-t border-gray-100 pt-3 sm:pt-4 mt-2">
