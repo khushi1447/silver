@@ -54,20 +54,20 @@ export default function Header() {
         name: "Pendants",
         items: [
           { name: "Silver pendants for women in Ahmedabad", href: "/collection/silver-pendants-women-ahmedabad" },
-          { name: "Delicate silver pendant necklace", href: "/shop?category=pendants&subcategory=delicate" },
+          { name: "Delicate silver pendant necklace", href: "/collection/delicate-silver-pendants" },
         ],
       },
       {
         name: "Necklaces",
         items: [
-          { name: "Best silver necklace for womens", href: "/shop?category=necklaces&subcategory=women" },
+          { name: "Best silver necklace for womens", href: "/collection/best-silver-necklaces-women" },
         ],
       },
       {
         name: "Bracelets",
         items: [
-          { name: "Best mens sterling silver bracelet", href: "/shop?category=bracelets&subcategory=men" },
-          { name: "Best womens sterling silver bracelet", href: "/shop?category=bracelets&subcategory=women" },
+          { name: "Best mens sterling silver bracelet", href: "/collection/mens-sterling-silver-bracelets" },
+          { name: "Best womens sterling silver bracelet", href: "/collection/womens-sterling-silver-bracelets" },
         ],
       },
       {
@@ -76,20 +76,20 @@ export default function Header() {
           {
             name: "Men's Rings",
             items: [
-              { name: "Best silver rings for men", href: "/shop?category=rings&subcategory=men" },
+              { name: "Best silver rings for men", href: "/collection/silver-rings-men" },
             ],
           },
           {
             name: "Women's Rings",
             items: [
-              { name: "Best silver rings for women", href: "/shop?category=rings&subcategory=women" },
-              { name: "Unique sterling rings for women", href: "/shop?category=rings&subcategory=women-unique" },
+              { name: "Best silver rings for women", href: "/collection/silver-rings-women" },
+              { name: "Unique sterling rings for women", href: "/collection/unique-sterling-rings-women" },
             ],
           },
           {
             name: "Special/Theme Rings",
             items: [
-              { name: "Silver infinity ring price", href: "/shop?category=rings&subcategory=infinity" },
+              { name: "Silver infinity ring price", href: "/collection/silver-infinity-rings" },
             ],
           },
         ],
