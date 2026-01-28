@@ -13,6 +13,15 @@ export const metadata: Metadata = {
 // Blog posts data - in a real app, this would come from a database or CMS
 const blogPosts = [
   {
+    id: "silver-jewellery-styling-tips-for-modern-women",
+    title: "Silver Jewellery Styling Tips for Modern Women",
+    excerpt:
+      "Discover expert silver jewellery styling tips for modern women. Learn how to wear 925 sterling silver for work, casual outings, ethnic looks, and special occasions.",
+    image: "/images/blog4.png",
+    date: new Date("2026-01-28").toISOString(),
+    category: "Styling Guide",
+  },
+  {
     id: "benefits-of-sterling-silver-vs-imitation-jewelry",
     title: "Benefits of Investing in Pure Sterling Silver vs. Imitation Jewelry",
     excerpt:

@@ -7,40 +7,46 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: ["/", "/assets/", "/uploads/", "/images/", "/css/", "/js/"],
+        allow: [
+          "/",
+          "/about",
+          "/shop",
+          "/contact",
+          "/blog",
+          "/collection/",
+          "/assets/",
+          "/uploads/",
+          "/images/",
+          "/css/",
+          "/js/",
+        ],
         disallow: [
-          // Block private and system areas
-          "/admin/",
-          "/administrator/",
-          "/login/",
-          "/register/",
-          "/account/",
-          "/my-account/",
-          "/customer/",
-          "/dashboard/",
-
-          // Block cart and checkout
-          "/cart/",
-          "/checkout/",
-          "/order/",
-          "/orders/",
-          "/payment/",
-
-          // Block internal search and filters
-          "/search/",
-          "/*?*",
-          "/*&*",
-          "/*filter=*",
-          "/*sort=*",
-
-          // Block temporary and system folders
-          "/cgi-bin/",
-          "/tmp/",
-          "/cache/",
+          "/admin",
+          "/administrator",
+          "/admin-auth",
+          "/api/admin",
+          "/login",
+          "/signup",
+          "/register",
+          "/account",
+          "/my-account",
+          "/customer",
+          "/dashboard",
+          "/orders",
+          "/cart",
+          "/checkout",
+          "/order",
+          "/payment",
+          "/search",
+          "/cgi-bin",
+          "/tmp",
+          "/cache",
+          "/_next",
+          "/api",
+          "/test",
         ],
       },
     ],
     sitemap: `${BASE_URL}/sitemap.xml`,
   }
 }
-
