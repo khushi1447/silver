@@ -111,6 +111,7 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       <meta name="google-site-verification" content="GNfOsLKh6Bcx3vSJb6Fmn1bWDFfHCcHfCxne4mQW7Xs" />
+      <link rel="canonical" href="https://silverline925.in/" />
       <Header />
 
       {/* Banner Slider */}
