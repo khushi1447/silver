@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     title: "Buy Delicate Silver Pendant Necklaces for Women at Best Price",
     description:
       "Shop Premium delicate silver pendant necklaces crafted for minimal everyday elegance. Explore the Latest styles at Silverline925.",
-    url: "https://silverline925.in/collections/delicate-silver-pendants",
+    url: "https://silverline925.in/collection/delicate-silver-pendant-necklaces",
     siteName: "Silver Line",
     type: "article",
   },

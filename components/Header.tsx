@@ -54,7 +54,7 @@ export default function Header() {
         name: "Pendants",
         items: [
           { name: "Silver pendants for women in Ahmedabad", href: "/collection/silver-pendants-women-ahmedabad" },
-          { name: "Delicate silver pendant necklace", href: "/collection/delicate-silver-pendants" },
+          { name: "Delicate silver pendant necklace", href: "/collection/delicate-silver-pendant-necklaces" },
         ],
       },
       {
