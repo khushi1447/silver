@@ -5,6 +5,10 @@ import CartContent from "@/components/CartContent"
 export const metadata = {
   title: "Shopping Cart - Elegant Jewelry",
   description: "Review your selected jewelry items and proceed to checkout.",
+  robots: {
+    index: false,
+    follow: true,
+  },
 }
 
 export default function CartPage() {

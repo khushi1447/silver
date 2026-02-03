@@ -6,6 +6,9 @@ import ShopContent from "@/components/ShopContent"
 export const metadata = {
   title: "Shop - Elegant Jewelry Collection",
   description: "Browse our complete collection of handcrafted jewelry. Filter by category, price, and metal type.",
+  alternates: {
+    canonical: "https://silverline925.in/shop",
+  },
 }
 
 function ShopContentSkeleton() {

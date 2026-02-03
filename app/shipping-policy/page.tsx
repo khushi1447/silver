@@ -6,6 +6,9 @@ import type { Metadata } from "next"
 export const metadata: Metadata = {
   title: "Shipping & Delivery Policy | Silver Line",
   description: "Detailed Shipping & Delivery Policy for Silver Line: dispatch timelines, tracking, courier partners, ODA serviceability, delivery attempts, damage handling, delays, international shipping and support information.",
+  alternates: {
+    canonical: "https://silverline925.in/shipping-policy",
+  },
 }
 
 export default function ShippingPolicyPage() {

@@ -1,6 +1,15 @@
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
 import { Shield, Lock, Eye, Database, Cookie, UserCheck, Globe, Settings, Mail, Phone } from "lucide-react"
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Privacy Policy | Silver Line",
+  description: "Privacy Policy for Silver Line - Learn how we collect, use, and protect your personal information.",
+  alternates: {
+    canonical: "https://silverline925.in/privacy",
+  },
+}
 
 export default function PrivacyPage() { 
   return (

@@ -6,6 +6,9 @@ import type { Metadata } from "next"
 export const metadata: Metadata = {
   title: "Cancellation Policy | Silver Line",
   description: "Silver Line Cancellation Policy: cancellation window, eligibility rules, non-cancellable items, how to request, refund timelines, exceptions and support contact information.",
+  alternates: {
+    canonical: "https://silverline925.in/cancellation-policy",
+  },
 }
 
 export default function CancellationPolicyPage() {

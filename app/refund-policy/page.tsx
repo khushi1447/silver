@@ -1,6 +1,15 @@
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
 import { RefreshCw, XCircle, RotateCcw, PackageCheck, AlertTriangle, Truck, Clock, CheckCircle, Mail } from "lucide-react"
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Refund Policy | Silver Line",
+  description: "Refund and Cancellation Policy for Silver Line - Learn about our refund process and conditions.",
+  alternates: {
+    canonical: "https://silverline925.in/refund-policy",
+  },
+}
 
 export default function RefundPolicyPage() {
   return (

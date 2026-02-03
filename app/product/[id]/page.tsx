@@ -38,6 +38,9 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
         description: product.shortDescription || product.description || undefined,
         images: product.images.map(img => img.url),
       },
+      alternates: {
+        canonical: `https://silverline925.in/product/${productId}`,
+      },
     }
   } catch (error) {
     return {

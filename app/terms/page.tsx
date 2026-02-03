@@ -1,6 +1,15 @@
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
 import { FileText, ShieldCheck, ShoppingCart, Truck, CreditCard, AlertCircle, Scale, Mail } from "lucide-react"
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Terms & Conditions | Silver Line",
+  description: "Terms and Conditions for Silver Line - Please read carefully before using our services.",
+  alternates: {
+    canonical: "https://silverline925.in/terms",
+  },
+}
 
 export default function TermsPage() {
   return (

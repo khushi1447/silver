@@ -14,6 +14,9 @@ export const metadata: Metadata = {
   keywords:
     "silver jewelry, silver line, handcrafted jewelry, rings, necklaces, earrings, bracelets, silver collection",
   authors: [{ name: "SILVER LINE" }],
+  metadataBase: new URL("https://silverline925.in"),
+
+
 
   openGraph: {
     title: "SILVER LINE - The Endless Shine of Silver",
@@ -51,7 +54,6 @@ export default function RootLayout({
       <head>
         {/* Google Fonts */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="canonical" href="https://silverline925.in/" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
           href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"

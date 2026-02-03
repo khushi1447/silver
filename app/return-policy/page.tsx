@@ -3,6 +3,16 @@ import { Badge } from "@/components/ui/badge"
 
 export const dynamic = "force-static"
 
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Return Policy | Silver Line",
+  description: "Return Policy for Silver Line - Information on returns, eligibility, and process.",
+  alternates: {
+    canonical: "https://silverline925.in/return-policy",
+  },
+}
+
 export default function ReturnPolicyPage() {
   return (
     <div className="container mx-auto max-w-4xl px-4 py-8">
