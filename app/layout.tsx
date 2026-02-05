@@ -8,19 +8,27 @@ import Providers from "@/components/Providers"
 import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://silverline925.in"),
+
   title: "SILVER LINE - The Endless Shine of Silver",
   description:
     "Discover our exquisite collection of handcrafted silver jewelry. Premium silver pieces for every occasion. The endless shine of silver.",
+
   keywords:
     "silver jewelry, silver line, handcrafted jewelry, rings, necklaces, earrings, bracelets, silver collection",
+
   authors: [{ name: "SILVER LINE" }],
-  metadataBase: new URL("https://silverline925.in"),
 
-
+  // ✅ CANONICAL TAG (HOME PAGE)
+  alternates: {
+    canonical: "/", // → https://silverline925.in/
+  },
 
   openGraph: {
     title: "SILVER LINE - The Endless Shine of Silver",
     description: "Discover our exquisite collection of handcrafted silver jewelry",
+    url: "https://silverline925.in/",
+    siteName: "Silver Line",
     type: "website",
     locale: "en_US",
   },
@@ -60,7 +68,7 @@ export default function RootLayout({
           rel="stylesheet"
         />
 
-        {/* ✅ Google Analytics */}
+        {/* Google Analytics */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-9SWK9B1R84"
           strategy="afterInteractive"
