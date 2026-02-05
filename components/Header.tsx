@@ -146,7 +146,7 @@ export default function Header() {
                     {/* Collection Dropdown */}
                     {isCollectionHovered && (
                       <div 
-                        className={`absolute top-full left-0 mt-2 bg-white rounded-none shadow-xl border border-gray-100 p-4 sm:p-5 md:p-6 z-50 animate-in fade-in-0 zoom-in-95 ${
+                        className={`absolute top-full left-0 mt-0 bg-white rounded-none shadow-xl border border-gray-100 p-4 sm:p-5 md:p-6 z-50 animate-in fade-in-0 zoom-in-95 ${
                           hoveredCategory 
                             ? 'w-[90vw] sm:w-[600px] max-w-[600px]' 
                             : 'w-[90vw] sm:w-auto min-w-[200px] max-w-[250px]'

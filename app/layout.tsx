@@ -49,6 +49,12 @@ export const metadata: Metadata = {
     google: "GNfOsLKh6Bcx3vSJb6Fmn1bWDFfHCcHfCxne4mQW7Xs",
   },
 
+  icons: {
+    icon: "/images/Logo.jpeg",
+    shortcut: "/images/Logo.jpeg",
+    apple: "/images/Logo.jpeg",
+  },
+
   generator: "v0.dev",
 }
 
