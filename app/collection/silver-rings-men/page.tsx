@@ -42,7 +42,7 @@ export default function SilverRingsMenPage() {
 
       {/* Products Section */}
       <CollectionProducts 
-        searchQuery="ring men" 
+        searchQuery="ring" 
         title="Silver Rings for Men"
         filterMenOnly={true}
       />

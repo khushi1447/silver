@@ -28,16 +28,25 @@ export default function CollectionProducts({ searchQuery, title = "Products", fi
     // First, filter by search query if we fetched all products
     let searchFiltered = products;
     if (shouldFetchAll && searchQuery) {
-      const searchLower = searchQuery.toLowerCase();
+      const searchKeywords = searchQuery.toLowerCase().split(/\s+/).filter(k => k.length > 0);
       searchFiltered = products.filter(product => {
         const nameLower = product.name.toLowerCase();
         const descLower = (product.description || "").toLowerCase();
         const shortDescLower = (product.shortDescription || "").toLowerCase();
         const categoryLower = (product.category?.name || "").toLowerCase();
-        return nameLower.includes(searchLower) || 
-               descLower.includes(searchLower) || 
-               shortDescLower.includes(searchLower) ||
-               categoryLower.includes(searchLower);
+        const fullText = `${nameLower} ${descLower} ${shortDescLower} ${categoryLower}`;
+        
+        // Match all keywords as whole words or starting/ending with non-alphanumeric
+        return searchKeywords.every(keyword => {
+          // Special case: if searching for "ring", exclude "earring"
+          if (keyword === "ring" && fullText.includes("earring")) {
+            // Only match if "ring" exists NOT as part of "earring"
+            const ringRegex = /\bring\b/i;
+            return ringRegex.test(fullText);
+          }
+          const regex = new RegExp(`\\b${keyword}\\b`, "i");
+          return regex.test(fullText);
+        });
       });
     }
     
@@ -54,52 +63,54 @@ export default function CollectionProducts({ searchQuery, title = "Products", fi
     
     if (!filterMenOnly && !filterWomenOnly) return searchFiltered;
     
-    const menKeywords = ["men", "mens", "male", "man", "for men", "men's", "mens'"];
-    const womenKeywords = ["women", "womens", "female", "lady", "ladies", "for her", "women's", "womens'", "her"];
+    const menKeywords = ["men", "mens", "male", "man", "for men", "gents", "gent", "boys"];
+    const womenKeywords = ["women", "womens", "female", "lady", "ladies", "for her", "her", "girls"];
     
     return searchFiltered.filter(product => {
       const nameLower = product.name.toLowerCase();
       const descLower = (product.description || "").toLowerCase();
       const shortDescLower = (product.shortDescription || "").toLowerCase();
-      const fullText = `${nameLower} ${descLower} ${shortDescLower}`;
+      const categoryLower = (product.category?.name || "").toLowerCase();
+      const fullText = `${nameLower} ${descLower} ${shortDescLower} ${categoryLower}`;
       
+      const hasKeyword = (keywords: string[]) => {
+        return keywords.some(keyword => {
+          const regex = new RegExp(`\\b${keyword}\\b`, "i");
+          return regex.test(fullText);
+        });
+      };
+
       if (filterMenOnly) {
         // Exclude products that clearly have women keywords
-        const hasWomenKeyword = womenKeywords.some(keyword => fullText.includes(keyword));
-        if (hasWomenKeyword) return false;
+        const hasWomen = hasKeyword(womenKeywords);
+        if (hasWomen) return false;
         
-        // Include if has men keywords, or if it's a cuban/chain product (likely for men if no women keywords)
-        const hasMenKeyword = menKeywords.some(keyword => fullText.includes(keyword));
-        return hasMenKeyword || (searchQuery.toLowerCase().includes("cuban") && !hasWomenKeyword);
+        // Include if has men keywords
+        const hasMen = hasKeyword(menKeywords);
+        if (hasMen) return true;
+        
+        // Secondary check: if searching for something typically masculine 
+        // and product matches that without having feminine keywords
+        const isTypicallyMasculineSearch = 
+          searchQuery.toLowerCase().includes("cuban") || 
+          searchQuery.toLowerCase().includes("chain") ||
+          (searchQuery.toLowerCase().includes("ring") && !fullText.includes("earring"));
+        
+        return isTypicallyMasculineSearch && !hasWomen;
       }
       
       if (filterWomenOnly) {
-        // Simple check: if product has "women" or "womens" in name/description and has "pendant" in name/description
-        // This is more lenient for pendant products
-        const hasPendant = nameLower.includes("pendant") || nameLower.includes("pendants") ||
-                          descLower.includes("pendant") || descLower.includes("pendants") ||
-                          shortDescLower.includes("pendant") || shortDescLower.includes("pendants");
-        const hasWomen = nameLower.includes("women") || nameLower.includes("womens") ||
-                        descLower.includes("women") || descLower.includes("womens") ||
-                        shortDescLower.includes("women") || shortDescLower.includes("womens");
-        
-        // If it's a pendant product with women keywords, include it
-        if (hasPendant && hasWomen) return true;
-        
         // Exclude products that clearly have men keywords
-        const hasMenKeyword = menKeywords.some(keyword => fullText.includes(keyword));
-        if (hasMenKeyword) return false;
+        const hasMen = hasKeyword(menKeywords);
+        if (hasMen) return false;
         
-        // Include if has women keywords (any product with women keywords)
-        const hasWomenKeyword = womenKeywords.some(keyword => fullText.includes(keyword));
-        if (hasWomenKeyword) return true;
+        // Include if has women keywords
+        const hasWomen = hasKeyword(womenKeywords);
+        if (hasWomen) return true;
         
-        // If searching for pendant/pendants, include all pendant products without men keywords
-        // Also check category name
-        const categoryLower = (product.category?.name || "").toLowerCase();
-        const isPendantProduct = (searchQuery.toLowerCase().includes("pendant") || categoryLower.includes("pendant")) && 
-                                 (hasPendant || categoryLower.includes("pendant") || categoryLower.includes("pendants"));
-        return isPendantProduct;
+        // If it doesn't have men keywords, we generally allow it in the women's collection
+        // for jewelry categories.
+        return !hasMen;
       }
       
       return true;

@@ -42,7 +42,7 @@ export default function BestSilverNecklacesWomenPage() {
 
       {/* Products Section */}
       <CollectionProducts 
-        searchQuery="necklace women" 
+        searchQuery="necklace" 
         title="Best Silver Necklaces for Women"
         filterWomenOnly={true}
       />

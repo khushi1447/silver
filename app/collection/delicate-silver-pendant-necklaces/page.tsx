@@ -42,7 +42,7 @@ export default function DelicateSilverPendantsPage() {
 
       {/* Products Section */}
       <CollectionProducts 
-        searchQuery="delicate pendant" 
+        searchQuery="pendant" 
         title="Delicate Silver Pendant Necklaces"
         filterWomenOnly={true}
       />

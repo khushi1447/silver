@@ -42,7 +42,7 @@ export default function UniqueSterlingRingsWomenPage() {
 
       {/* Products Section */}
       <CollectionProducts 
-        searchQuery="unique ring women" 
+        searchQuery="ring" 
         title="Unique Sterling Rings for Women"
         filterWomenOnly={true}
       />

@@ -42,7 +42,7 @@ export default function WomensSterlingSilverBraceletsPage() {
 
       {/* Products Section */}
       <CollectionProducts 
-        searchQuery="bracelet women" 
+        searchQuery="bracelet" 
         title="Women's Sterling Silver Bracelets"
         filterWomenOnly={true}
       />
