@@ -177,22 +177,25 @@ class ApiClient {
     return this.request<any>('/api/cart');
   }
 
-  async addToCart(productId: string, quantity: number = 1) {
+  async addToCart(productId: string, quantity: number = 1, selectedRingSize: string = "") {
     return this.request<any>(`/api/cart/${productId}`, {
       method: 'POST',
-      body: JSON.stringify({ quantity }),
+      body: JSON.stringify({ quantity, selectedRingSize }),
     });
   }
 
-  async updateCartItem(productId: string, quantity: number) {
+  async updateCartItem(productId: string, quantity: number, selectedRingSize: string = "") {
     return this.request<any>(`/api/cart/${productId}`, {
       method: 'PUT',
-      body: JSON.stringify({ quantity }),
+      body: JSON.stringify({ quantity, selectedRingSize }),
     });
   }
 
-  async removeFromCart(productId: string) {
-    return this.request<any>(`/api/cart/${productId}`, {
+  async removeFromCart(productId: string, selectedRingSize: string = "") {
+    const searchParams = new URLSearchParams();
+    if (selectedRingSize) searchParams.append("selectedRingSize", selectedRingSize);
+    
+    return this.request<any>(`/api/cart/${productId}?${searchParams.toString()}`, {
       method: 'DELETE',
     });
   }
@@ -482,9 +485,9 @@ export const api = {
   },
   cart: {
     get: () => apiClient.getCart(),
-    addItem: (productId: string, quantity?: number) => apiClient.addToCart(productId, quantity),
-    updateItem: (productId: string, quantity: number) => apiClient.updateCartItem(productId, quantity),
-    removeItem: (productId: string) => apiClient.removeFromCart(productId),
+    addItem: (productId: string, quantity?: number, selectedRingSize?: string) => apiClient.addToCart(productId, quantity, selectedRingSize),
+    updateItem: (productId: string, quantity: number, selectedRingSize?: string) => apiClient.updateCartItem(productId, quantity, selectedRingSize),
+    removeItem: (productId: string, selectedRingSize?: string) => apiClient.removeFromCart(productId, selectedRingSize),
     merge: (guestCart: any[]) => apiClient.mergeCart(guestCart),
   },
   wishlist: {

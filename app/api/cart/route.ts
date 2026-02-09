@@ -7,7 +7,8 @@ import { parseIntFromUnknown } from "@/lib/validation/input-normalize";
 
 const cartPutItemSchema = z.object({
   productId: z.preprocess(parseIntFromUnknown, z.number().int().positive()),
-  quantity: z.preprocess(parseIntFromUnknown, z.number().int().min(1).max(999)),
+  quantity: z.preprocess(parseIntFromUnknown, z.number().int().min(1).max(9)),
+  selectedRingSize: z.string().optional().nullable(),
 });
 
 type CartPutItem = z.infer<typeof cartPutItemSchema>;
@@ -16,9 +17,11 @@ type CartItemWithProductRow = {
   id: number;
   productId: number;
   quantity: number;
+  selectedRingSize: string | null;
   product: {
     name: string;
     price: any;
+    availableRingSizes: string[];
     stock: number;
     images: Array<{ url: string; isPrimary?: boolean }>;
   };
@@ -38,17 +41,19 @@ export async function GET(request: NextRequest) {
     const userId = parseInt(session.user.id);
 
     // Get user's cart items with product details
-    const cartItems: CartItemWithProductRow[] = await prisma.cartItem.findMany({
+    const cartItems = (await prisma.cartItem.findMany({
       where: { userId },
       select: {
         id: true,
         productId: true,
         quantity: true,
+        selectedRingSize: true,
         product: {
           select: {
             name: true,
             price: true,
             stock: true,
+            availableRingSizes: true,
             images: {
               where: { isPrimary: true },
               take: 1,
@@ -57,7 +62,7 @@ export async function GET(request: NextRequest) {
           },
         },
       },
-    });
+    })) as unknown as CartItemWithProductRow[];
 
     // Transform cart items to match frontend interface
     const items = cartItems.map((item: CartItemWithProductRow) => ({
@@ -69,6 +74,7 @@ export async function GET(request: NextRequest) {
       },
       price: parseFloat(item.product.price.toString()),
       quantity: item.quantity,
+      selectedRingSize: item.selectedRingSize,
       stock: item.product.stock,
     }));
 
@@ -138,11 +144,16 @@ export async function PUT(request: NextRequest) {
         .map((i) => {
           const product = productById.get(i.productId);
           if (!product) return null;
-          const clampedQuantity = Math.min(i.quantity, Math.max(product.stock, 0));
+          const clampedQuantity = Math.min(i.quantity, Math.max(product.stock, 0), 9);
           if (clampedQuantity <= 0) return null;
-          return { userId, productId: i.productId, quantity: clampedQuantity };
+          return { 
+            userId, 
+            productId: i.productId, 
+            quantity: clampedQuantity, 
+            selectedRingSize: (i as any).selectedRingSize || "" 
+          };
         })
-        .filter(Boolean) as Array<{ userId: number; productId: number; quantity: number }>;
+        .filter(Boolean) as Array<{ userId: number; productId: number; quantity: number; selectedRingSize: string }>;
 
       if (cartItems.length) {
         await prisma.cartItem.createMany({ data: cartItems });

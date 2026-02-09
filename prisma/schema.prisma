@@ -54,7 +54,8 @@ model Product {
   categoryId Int
 
   weight        Decimal? @db.Decimal(8, 3)
-  size          String? // ring size, chain length, etc.
+  size          String? // legacy ring size, chain length, etc.
+  availableRingSizes String[] @default([]) // For rings
 
   // Relations
   images        ProductImage[]
@@ -125,6 +126,7 @@ model OrderItem {
   quantity   Int
   price      Decimal @db.Decimal(10, 2) // price at order time
   totalPrice Decimal @db.Decimal(10, 2) // price * quantity
+  selectedRingSize String?
 
   // Store product details at time of order
   productName  String
@@ -249,10 +251,11 @@ model CartItem {
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   productId Int
   quantity  Int
+  selectedRingSize String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([userId, productId])
+  @@unique([userId, productId, selectedRingSize])
 }
 
 model Review {

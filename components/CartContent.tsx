@@ -16,18 +16,18 @@ export default function CartContent() {
     (window as any).debugGuestCart = debugCart
   }
 
-  const updateQuantity = async (productId: string, quantity: number) => {
+  const updateQuantity = async (productId: string, quantity: number, selectedRingSize: string = "") => {
     if (quantity <= 0) {
-      await removeFromCart(productId)
+      await removeFromCart(productId, selectedRingSize)
     } else {
       // Limit quantity to MAX_QUANTITY
       const limitedQuantity = Math.min(quantity, MAX_QUANTITY);
-      await updateCartItem(productId, limitedQuantity)
+      await updateCartItem(productId, limitedQuantity, selectedRingSize)
     }
   }
 
-  const removeItem = async (productId: string) => {
-    await removeFromCart(productId)
+  const removeItem = async (productId: string, selectedRingSize: string = "") => {
+    await removeFromCart(productId, selectedRingSize)
   }
 
 
@@ -113,7 +113,7 @@ export default function CartContent() {
         {/* Cart Items */}
         <div className="lg:col-span-2 space-y-3 sm:space-y-4">
           {cart.items.map((item) => (
-            <div key={`cart-item-${item.productId}`} className="bg-white rounded-lg p-4 sm:p-5 md:p-6 shadow-sm">
+            <div key={`cart-item-${item.productId}-${item.selectedRingSize || 'none'}`} className="bg-white rounded-lg p-4 sm:p-5 md:p-6 shadow-sm">
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
                 <Link href={`/product/${item.productId}`} className="flex-shrink-0 w-full sm:w-auto">
                   <Image
@@ -131,16 +131,23 @@ export default function CartContent() {
                       {item.product.name}
                     </h3>
                   </Link>
-                  <p className="text-sm sm:text-base text-gray-600 mt-1">₹{item.price.toFixed(2)}</p>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+                    <p className="text-sm text-gray-900 font-medium">₹{item.price.toFixed(2)}</p>
+                    {item.selectedRingSize && (
+                      <span className="text-xs px-2 py-0.5 bg-purple-50 text-purple-700 rounded border border-purple-100">
+                        Size: {item.selectedRingSize}
+                      </span>
+                    )}
+                  </div>
                   {item.quantity >= MAX_QUANTITY && (
                     <p className="text-xs text-amber-600 mt-1">Max quantity reached</p>
                   )}
                 </div>
 
-                <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-2 w-full sm:w-auto">
+                  <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-2 w-full sm:w-auto">
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <button
-                      onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                      onClick={() => updateQuantity(item.productId, item.quantity - 1, item.selectedRingSize || "")}
                       disabled={item.quantity <= 1}
                       className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white transition-colors"
                       aria-label="Decrease quantity"
@@ -149,7 +156,7 @@ export default function CartContent() {
                     </button>
                     <span className="w-10 text-center font-semibold text-gray-900 text-sm sm:text-base">{item.quantity}</span>
                     <button
-                      onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                      onClick={() => updateQuantity(item.productId, item.quantity + 1, item.selectedRingSize || "")}
                       disabled={item.quantity >= MAX_QUANTITY}
                       className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white transition-colors"
                       aria-label="Increase quantity"
@@ -159,7 +166,7 @@ export default function CartContent() {
                   </div>
 
                   <button
-                    onClick={() => removeItem(item.productId)}
+                    onClick={() => removeItem(item.productId, item.selectedRingSize || "")}
                     className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
                     aria-label="Remove item"
                   >

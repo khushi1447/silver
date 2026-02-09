@@ -21,7 +21,7 @@ export async function POST(
     const userId = parseInt(session.user.id);
     const productId = parseInt(resolvedParams.productId);
     const body = await request.json();
-    const { quantity = 1 } = body;
+    const { quantity = 1, selectedRingSize = "" } = body;
 
     // Validate userId
     if (isNaN(userId) || userId <= 0) {
@@ -76,9 +76,10 @@ export async function POST(
     // Add or update cart item
     await prisma.cartItem.upsert({
       where: {
-        userId_productId: {
+        userId_productId_selectedRingSize: {
           userId,
           productId,
+          selectedRingSize,
         },
       },
       update: {
@@ -90,6 +91,7 @@ export async function POST(
         userId,
         productId,
         quantity,
+        selectedRingSize,
       },
     });
 
@@ -130,7 +132,7 @@ export async function PUT(
     const userId = parseInt(session.user.id);
     const productId = parseInt(resolvedParams.productId);
     const body = await request.json();
-    const { quantity } = body;
+    const { quantity, selectedRingSize = "" } = body;
 
     // Validate userId
     if (isNaN(userId) || userId <= 0) {
@@ -167,15 +169,17 @@ export async function PUT(
         where: {
           userId,
           productId,
+          selectedRingSize,
         },
       });
     } else {
       // Update or create cart item
       await prisma.cartItem.upsert({
         where: {
-          userId_productId: {
+          userId_productId_selectedRingSize: {
             userId,
             productId,
+            selectedRingSize,
           },
         },
         update: {
@@ -185,6 +189,7 @@ export async function PUT(
           userId,
           productId,
           quantity,
+          selectedRingSize,
         },
       });
     }
@@ -225,6 +230,8 @@ export async function DELETE(
     const resolvedParams = await params;
     const userId = parseInt(session.user.id);
     const productId = parseInt(resolvedParams.productId);
+    const searchParams = request.nextUrl.searchParams;
+    const selectedRingSize = searchParams.get("selectedRingSize") || "";
 
     // Validate userId
     if (isNaN(userId) || userId <= 0) {
@@ -246,6 +253,7 @@ export async function DELETE(
       where: {
         userId,
         productId,
+        selectedRingSize,
       },
     });
 

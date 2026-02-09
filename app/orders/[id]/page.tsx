@@ -118,8 +118,15 @@ export default async function OrderPage({ params }: OrderPageProps) {
                     </div>
                     <div className="flex-1">
                       <h3 className="font-semibold text-gray-900">{item.productName}</h3>
-                      <p className="text-gray-600">Quantity: {item.quantity}</p>
-                      <p className="text-gray-900 font-medium">{formatCurrency(Number(item.totalPrice))}</p>
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1">
+                        <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
+                        {item.selectedRingSize && (
+                          <p className="text-sm text-purple-600 font-medium bg-purple-50 px-2 py-0.5 rounded border border-purple-100">
+                            Size: {item.selectedRingSize}
+                          </p>
+                        )}
+                      </div>
+                      <p className="text-gray-900 font-medium mt-1">{formatCurrency(Number(item.totalPrice))}</p>
                     </div>
                   </div>
                 ))}

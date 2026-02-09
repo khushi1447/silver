@@ -20,6 +20,7 @@ interface CartItem {
   };
   quantity: number;
   price: number;
+  selectedRingSize: string | null;
 }
 
 interface Cart {
@@ -66,12 +67,12 @@ export function useCart() {
     fetchCart();
   }, [fetchCart]);
 
-  const addToCart = useCallback(async (productId: string, quantity: number = 1) => {
+  const addToCart = useCallback(async (productId: string, quantity: number = 1, selectedRingSize: string = "") => {
     try {
       setLoading(true);
       setError(null);
 
-      const response = await api.cart.addItem(productId, quantity);
+      const response = await api.cart.addItem(productId, quantity, selectedRingSize);
 
       if (response.error) {
         throw new Error(response.error);
@@ -86,12 +87,12 @@ export function useCart() {
     }
   }, [fetchCart]);
 
-  const updateCartItem = useCallback(async (productId: string, quantity: number) => {
+  const updateCartItem = useCallback(async (productId: string, quantity: number, selectedRingSize: string = "") => {
     try {
       setLoading(true);
       setError(null);
 
-      const response = await api.cart.updateItem(productId, quantity);
+      const response = await api.cart.updateItem(productId, quantity, selectedRingSize);
 
       if (response.error) {
         throw new Error(response.error);
@@ -106,12 +107,12 @@ export function useCart() {
     }
   }, [fetchCart]);
 
-  const removeFromCart = useCallback(async (productId: string) => {
+  const removeFromCart = useCallback(async (productId: string, selectedRingSize: string = "") => {
     try {
       setLoading(true);
       setError(null);
 
-      const response = await api.cart.removeItem(productId);
+      const response = await api.cart.removeItem(productId, selectedRingSize);
 
       if (response.error) {
         throw new Error(response.error);

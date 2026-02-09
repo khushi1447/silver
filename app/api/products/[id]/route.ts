@@ -45,6 +45,7 @@ const updateProductSchema = z.object({
   categoryId: z.preprocess(parseIntFromUnknown, z.number().int().positive("Category is required")).optional(),
   weight: z.preprocess(parseDecimalFromUnknown, z.number().positive()).optional(),
   size: z.preprocess(normalizeOptionalTrimmedString, z.string().max(100)).optional(),
+  availableRingSizes: z.array(z.string()).optional(),
   images: z.array(imageSchema).min(0, "Images required").max(10, "Maximum 10 images allowed").optional(),
 });
 
@@ -154,6 +155,7 @@ export async function GET(
       },
       weight: product.weight ? parseFloat(product.weight.toString()) : null,
       size: product.size,
+      availableRingSizes: product.availableRingSizes,
       images: product.images.map(img => ({
         id: img.id,
         url: img.url,
@@ -308,7 +310,7 @@ export async function PUT(
           },
         },
       });
-    });
+    }, { timeout: 30000 });
     
     return NextResponse.json({
       message: "Product updated successfully",
@@ -318,7 +320,7 @@ export async function PUT(
         price: updatedProduct ? parseFloat(updatedProduct.price.toString()) : 0,
       },
     });
-  } catch (error) {
+  } catch (error: any) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Validation error", details: error.errors },
@@ -328,7 +330,13 @@ export async function PUT(
     
     console.error("Error updating product:", error);
     return NextResponse.json(
-      { error: "Failed to update product" },
+      { 
+        error: "Failed to update product",
+        details: error?.message || "Unknown database error",
+        code: error?.code,
+        meta: error?.meta,
+        stack: process.env.NODE_ENV === 'development' ? error?.stack : undefined
+      },
       { status: 500 }
     );
   }

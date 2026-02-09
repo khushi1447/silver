@@ -46,6 +46,7 @@ const createProductSchema = z.object({
   categoryId: z.preprocess(parseIntFromUnknown, z.number().int().positive("Category is required")),
   weight: z.preprocess(parseDecimalFromUnknown, z.number().positive()).optional(),
   size: z.preprocess(normalizeOptionalTrimmedString, z.string().max(100)).optional(),
+  availableRingSizes: z.array(z.string()).default([]),
   images: z.array(imageSchema).min(3, "Minimum 3 images required").max(10, "Maximum 10 images allowed"),
 });
 
@@ -173,6 +174,7 @@ export async function GET(request: NextRequest) {
       },
       weight: product.weight ? parseFloat(product.weight.toString()) : null,
       size: product.size,
+      availableRingSizes: product.availableRingSizes,
       images: product.images.map((img: any) => ({
         id: img.id,
         url: img.url,
@@ -275,6 +277,7 @@ export async function POST(request: NextRequest) {
             categoryId: validatedData.categoryId,
             weight: validatedData.weight,
             size: validatedData.size,
+            availableRingSizes: validatedData.availableRingSizes,
           },
         })
         console.log("Product created with ID:", newProduct.id);
@@ -305,15 +308,18 @@ export async function POST(request: NextRequest) {
               orderBy: { sortOrder: 'asc' }
             },
           },
-        })
-      })
+        });
+      }, { timeout: 30000 });
       console.log("Transaction completed successfully");
-    } catch (dbError) {
-      console.error("Database transaction error:", dbError);
+    } catch (dbError: any) {
+      console.error("Database transaction error FULL:", dbError);
       return NextResponse.json(
         {
           error: "Failed to create product",
-          details: dbError instanceof Error ? dbError.message : "Unknown database error"
+          details: dbError?.message || "Unknown database error",
+          code: dbError?.code,
+          meta: dbError?.meta,
+          stack: process.env.NODE_ENV === 'development' ? dbError?.stack : undefined
         },
         { status: 500 }
       );

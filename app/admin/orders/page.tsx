@@ -631,6 +631,11 @@ export default function OrdersPage() {
                               <div className="font-medium">
                                 {item.productName || "Product"}
                               </div>
+                              {item.selectedRingSize && (
+                                <div className="text-xs font-medium text-purple-600">
+                                  Size: US {item.selectedRingSize}
+                                </div>
+                              )}
                               <div className="text-xs text-muted-foreground">
                                 SKU: {item.productSku || item.productId}
                               </div>

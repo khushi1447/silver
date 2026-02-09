@@ -13,6 +13,11 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ImageUpload } from "@/components/ui/image-upload"
+import { RING_SIZES } from "@/lib/constants/ring-sizes"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils"
+import { X, Check, ChevronsUpDown } from "lucide-react"
 
 function parsePriceInput(raw: string): number | null {
   const s = raw.trim().replace(/\s+/g, "")
@@ -38,6 +43,7 @@ function apiErrorMessage(data: any): string {
     const firstMsg = Array.isArray(data.fieldErrors[firstKey]) ? data.fieldErrors[firstKey][0] : undefined
     if (firstKey && firstMsg) return `${firstKey}: ${firstMsg}`
   }
+  if (typeof data?.details === "string") return data.details
   if (typeof data?.error === "string") return data.error
   return "Failed to create product"
 }
@@ -58,6 +64,7 @@ interface ProductFormData {
   stock: string
   categoryId: string
   size: string
+  availableRingSizes: string[]
   images: UploadedImage[]
 }
 
@@ -72,6 +79,7 @@ export default function AddProductPage() {
     stock: "",
     categoryId: "",
     size: "",
+    availableRingSizes: [],
     images: []
   })
 
@@ -241,6 +249,7 @@ export default function AddProductPage() {
         stock: parsedStock,
         categoryId: parsedCategoryId,
         size: formData.size.trim() || null,
+        availableRingSizes: formData.availableRingSizes,
         images: imageData
       }
       
@@ -384,7 +393,7 @@ export default function AddProductPage() {
             {/* Product Details */}
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="size">Size *</Label>
+                <Label htmlFor="size">Size / Specification</Label>
                 <Input
                   id="size"
                   value={formData.size}
@@ -393,6 +402,88 @@ export default function AddProductPage() {
                   className="focus:ring-primary focus:border-primary"
                 />
               </div>
+
+              {/* Ring Sizes Selection */}
+              {categories.find(c => String(c.id) === formData.categoryId)?.name?.toLowerCase().includes("ring") && (
+                <div className="space-y-3 pt-2">
+                  <Label>Available Ring Sizes (US Sizes) *</Label>
+                  <p className="text-xs text-muted-foreground">Select all sizes that are available for this product.</p>
+                  
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className="w-full justify-between h-auto min-h-[44px] px-3 py-2 text-left font-normal border-gray-200 focus:ring-primary"
+                      >
+                        <div className="flex flex-wrap gap-1">
+                          {formData.availableRingSizes.length > 0 ? (
+                            formData.availableRingSizes.map((size) => (
+                              <Badge 
+                                key={size} 
+                                variant="secondary"
+                                className="bg-purple-50 text-purple-700 border-purple-100 hover:bg-purple-100 transition-colors"
+                              >
+                                {size}
+                                <X 
+                                  className="ml-1 h-3 w-3 cursor-pointer" 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setFormData(prev => ({
+                                      ...prev,
+                                      availableRingSizes: prev.availableRingSizes.filter(s => s !== size)
+                                    }));
+                                  }}
+                                />
+                              </Badge>
+                            ))
+                          ) : (
+                            <span className="text-gray-500">Select available sizes...</span>
+                          )}
+                        </div>
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                      <div className="p-2 grid grid-cols-4 sm:grid-cols-5 gap-2 max-h-[300px] overflow-y-auto">
+                        {RING_SIZES.map((size) => {
+                          const isSelected = formData.availableRingSizes.includes(size.us);
+                          return (
+                            <Button
+                              key={size.us}
+                              type="button"
+                              variant={isSelected ? "default" : "outline"}
+                              size="sm"
+                              className={cn(
+                                "h-9 w-full text-xs font-semibold transition-all",
+                                isSelected 
+                                  ? "bg-purple-600 hover:bg-purple-700 text-white border-purple-600" 
+                                  : "hover:border-purple-300 hover:text-purple-600"
+                              )}
+                              onClick={() => {
+                                if (isSelected) {
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    availableRingSizes: prev.availableRingSizes.filter(s => s !== size.us)
+                                  }));
+                                } else {
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    availableRingSizes: [...prev.availableRingSizes, size.us].sort((a, b) => parseFloat(a) - parseFloat(b))
+                                  }));
+                                }
+                              }}
+                            >
+                              {size.us}
+                              {isSelected && <Check className="ml-1 h-3 w-3" />}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              )}
             </div>
             {/* Product Images */}
             <div className="space-y-4">

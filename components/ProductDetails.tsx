@@ -2,9 +2,12 @@
 
 
 import { useState, useEffect } from "react";
-import { ShoppingCart, Heart, Share2, Star, Copy, Check, ChevronLeft, ChevronRight } from "lucide-react";
+import { ShoppingCart, Heart, Share2, Star, Copy, Check, ChevronLeft, ChevronRight, Ruler } from "lucide-react";
 import { type ApiProduct } from "@/types/api";
 import { type ProductWithDetails } from "@/lib/services/product";
+import { RING_SIZES } from "@/lib/constants/ring-sizes";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import AddToCartButton from "./AddToCartButton";
 import WishlistButton from "./WishlistButton";
 import ProductReviews from "./ProductReviews";
@@ -14,9 +17,13 @@ interface ProductDetailsProps {
 }
 
 export default function ProductDetails({ product }: ProductDetailsProps) {
-  const MAX_QUANTITY = 9;
+  const MAX_QUANTITY = Math.min(9, product.stock);
   const [quantity, setQuantity] = useState(1);
+  const [selectedRingSize, setSelectedRingSize] = useState<string>("");
   const [isLinkCopied, setIsLinkCopied] = useState(false);
+  
+  const isRing = product.category?.name?.toLowerCase().includes("ring");
+  const hasRingSizes = product.availableRingSizes && product.availableRingSizes.length > 0;
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [thumbnailStartIndex, setThumbnailStartIndex] = useState(0);
 
@@ -255,31 +262,113 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
             {/* Quantity Selector */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Quantity {quantity >= MAX_QUANTITY && <span className="text-xs text-gray-500">(Max: {MAX_QUANTITY})</span>}
+                Quantity <span className="text-xs text-gray-500">(Max: {MAX_QUANTITY})</span>
               </label>
               <div className="flex items-center space-x-3">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  disabled={quantity <= 1}
+                  disabled={quantity <= 1 || product.stock === 0}
                   className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white transition-colors"
                 >
                   -
                 </button>
                 <span className="w-12 text-center font-semibold">
-                  {quantity}
+                  {product.stock === 0 ? 0 : quantity}
                 </span>
                 <button
                   onClick={() => setQuantity(Math.min(MAX_QUANTITY, quantity + 1))}
-                  disabled={quantity >= MAX_QUANTITY}
+                  disabled={quantity >= MAX_QUANTITY || product.stock === 0}
                   className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white transition-colors"
                 >
                   +
                 </button>
               </div>
-              {quantity >= MAX_QUANTITY && (
+              {quantity >= MAX_QUANTITY && MAX_QUANTITY > 0 && (
                 <p className="text-xs text-amber-600 mt-1">Maximum quantity reached</p>
               )}
+              {product.stock === 0 && (
+                <p className="text-xs text-red-600 mt-1">Temporarily out of stock</p>
+              )}
             </div>
+
+            {/* Ring Size Selection */}
+            {isRing && hasRingSizes && (
+              <div className="space-y-4 pt-2">
+                <div className="flex justify-between items-center">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Select Ring Size (US)
+                  </label>
+                  
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <button className="text-xs text-purple-600 hover:text-purple-700 font-medium flex items-center gap-1 transition-colors">
+                        <Ruler className="w-3 h-3" />
+                        Size Guide
+                      </button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>Ring Size Guide</DialogTitle>
+                      </DialogHeader>
+                      <div className="mt-4 space-y-4">
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm text-left border-collapse">
+                            <thead>
+                              <tr className="bg-gray-50">
+                                <th className="p-2 border">US Size</th>
+                                <th className="p-2 border">Indian Size</th>
+                                <th className="p-2 border">Diameter (mm)</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {RING_SIZES.map(s => (
+                                <tr key={s.us} className="hover:bg-gray-50">
+                                  <td className="p-2 border font-medium text-purple-600">{s.us}</td>
+                                  <td className="p-2 border">{s.indian}</td>
+                                  <td className="p-2 border text-gray-500">{s.diameter}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                        <p className="text-xs text-gray-500 italic">
+                          * Measure the inner diameter of an existing ring or wrap a string around your finger to find the circumference.
+                        </p>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+                
+                <div className="flex flex-col gap-2">
+                  <Select value={selectedRingSize} onValueChange={setSelectedRingSize}>
+                    <SelectTrigger className="w-full h-11 border-gray-200 focus:ring-purple-500">
+                      <SelectValue placeholder="Choose your size" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {RING_SIZES.map((size) => {
+                        const isAvailable = product.availableRingSizes?.includes(size.us);
+                        return (
+                          <SelectItem 
+                            key={size.us} 
+                            value={size.us} 
+                            disabled={!isAvailable}
+                          >
+                            US Size {size.us} {!isAvailable && "(Out of stock)"}
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {isRing && hasRingSizes && !selectedRingSize && (
+                  <p className="text-xs text-red-500 font-medium animate-pulse flex items-center gap-1">
+                    <span className="w-1 h-1 rounded-full bg-red-500"></span>
+                    Please select a size to add to cart
+                  </p>
+                )}
+              </div>
+            )}
+
             <div className="border-t pt-4">
               <h3 className="font-semibold mb-4">Product Details</h3>
               <ul className="space-y-2 text-gray-600">
@@ -297,9 +386,12 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex space-x-4">
+            <div className="flex space-x-4 pt-2">
               <AddToCartButton
                 productId={product.id}
+                quantity={quantity}
+                selectedSize={selectedRingSize}
+                disabled={product.stock === 0 || (isRing && hasRingSizes && !selectedRingSize)}
                 className="flex-1 bg-gray-900 text-white py-3 px-6 rounded-lg hover:bg-gray-800 transition-colors flex items-center justify-center space-x-2"
               />
 

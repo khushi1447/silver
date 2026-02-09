@@ -14,6 +14,7 @@ export interface ProductWithDetails {
   };
   weight?: number;
   size?: string;
+  availableRingSizes?: string[];
   images: Array<{
     id: string;
     url: string;
@@ -100,6 +101,7 @@ export async function getProductById(id: number): Promise<ProductWithDetails | n
       },
       weight: product.weight ? parseFloat(product.weight.toString()) : undefined,
       size: product.size || undefined,
+      availableRingSizes: (product as any).availableRingSizes || [],
       images: product.images.map(img => ({
         id: img.id.toString(),
         url: img.url,

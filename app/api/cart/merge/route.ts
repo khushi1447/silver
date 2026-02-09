@@ -8,10 +8,11 @@ import { parseIntFromUnknown } from "@/lib/validation/input-normalize";
 const guestCartItemSchema = z.object({
   productId: z.preprocess(parseIntFromUnknown, z.number().int().positive()),
   quantity: z.preprocess(parseIntFromUnknown, z.number().int().min(1).max(999)),
+  selectedRingSize: z.string().optional().nullable(),
 });
 
 type GuestCartItem = z.infer<typeof guestCartItemSchema>;
-type CartItemRow = { id: number; productId: number; quantity: number };
+type CartItemRow = { id: number; productId: number; quantity: number; selectedRingSize: string | null };
 type ProductStockRow = { id: number; stock: number };
 type CartItemWithProductRow = {
   id: number;
@@ -50,12 +51,12 @@ export async function POST(request: NextRequest) {
     // Get existing user cart items
     const existingCartItems: CartItemRow[] = await prisma.cartItem.findMany({
       where: { userId },
-      select: { id: true, productId: true, quantity: true },
+      select: { id: true, productId: true, quantity: true, selectedRingSize: true },
     });
 
-    // Create a map of existing items for quick lookup
-    const existingItemsMap = new Map<number, CartItemRow>(
-      existingCartItems.map((item: CartItemRow) => [item.productId, item])
+    // Create a map of existing items for quick lookup - key: productId_selectedRingSize
+    const existingItemsMap = new Map<string, CartItemRow>(
+      existingCartItems.map((item: CartItemRow) => [`${item.productId}_${item.selectedRingSize || ""}`, item])
     );
 
     // Validate and normalize guest cart items
@@ -84,7 +85,8 @@ export async function POST(request: NextRequest) {
       const clampedQuantity = Math.min(guestItem.quantity, Math.max(product.stock, 0));
       if (clampedQuantity <= 0) continue;
 
-      const existingItem = existingItemsMap.get(guestItem.productId);
+      const guestSize = (guestItem as any).selectedRingSize || "";
+      const existingItem = existingItemsMap.get(`${guestItem.productId}_${guestSize}`);
 
       if (existingItem) {
         const newQuantity = Math.min(existingItem.quantity + clampedQuantity, product.stock);
@@ -98,6 +100,7 @@ export async function POST(request: NextRequest) {
             userId,
             productId: guestItem.productId,
             quantity: clampedQuantity,
+            selectedRingSize: guestSize,
           },
         });
       }
@@ -110,6 +113,7 @@ export async function POST(request: NextRequest) {
         id: true,
         productId: true,
         quantity: true,
+        selectedRingSize: true,
         product: {
           select: {
             name: true,
@@ -132,6 +136,7 @@ export async function POST(request: NextRequest) {
       price: parseFloat(item.product.price.toString()),
       image: item.product.images[0]?.url || "/placeholder.jpg",
       quantity: item.quantity,
+      selectedRingSize: (item as any).selectedRingSize,
       stock: item.product.stock,
     }));
 

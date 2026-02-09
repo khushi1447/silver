@@ -21,6 +21,7 @@ interface CartItem {
   }
   quantity: number
   price: number
+  selectedRingSize: string | null
 }
 
 interface Cart {
@@ -120,29 +121,29 @@ export function useUnifiedCart() {
   }, [isAuthenticated, authenticatedCart.cart, guestCart.cart])
 
   // Add to cart (works for both guest and authenticated)
-  const addToCart = useCallback(async (productId: string, quantity: number = 1) => {
+  const addToCart = useCallback(async (productId: string, quantity: number = 1, selectedRingSize: string = "") => {
     if (isAuthenticated) {
-      return await authenticatedCart.addToCart(productId, quantity)
+      return await authenticatedCart.addToCart(productId, quantity, selectedRingSize)
     } else {
-      return await guestCart.addToCart(productId, quantity)
+      return await guestCart.addToCart(productId, quantity, selectedRingSize)
     }
   }, [isAuthenticated, authenticatedCart, guestCart])
 
   // Update cart item (works for both guest and authenticated)
-  const updateCartItem = useCallback(async (productId: string, quantity: number) => {
+  const updateCartItem = useCallback(async (productId: string, quantity: number, selectedRingSize: string = "") => {
     if (isAuthenticated) {
-      return await authenticatedCart.updateCartItem(productId, quantity)
+      return await authenticatedCart.updateCartItem(productId, quantity, selectedRingSize)
     } else {
-      guestCart.updateCartItem(productId, quantity)
+      guestCart.updateCartItem(productId, quantity, selectedRingSize)
     }
   }, [isAuthenticated, authenticatedCart, guestCart])
 
   // Remove from cart (works for both guest and authenticated)
-  const removeFromCart = useCallback(async (productId: string) => {
+  const removeFromCart = useCallback(async (productId: string, selectedRingSize: string = "") => {
     if (isAuthenticated) {
-      return await authenticatedCart.removeFromCart(productId)
+      return await authenticatedCart.removeFromCart(productId, selectedRingSize)
     } else {
-      guestCart.removeFromCart(productId)
+      guestCart.removeFromCart(productId, selectedRingSize)
     }
   }, [isAuthenticated, authenticatedCart, guestCart])
 

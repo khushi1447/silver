@@ -12,6 +12,7 @@ export interface ApiProduct {
   };
   weight?: number;
   size?: string;
+  availableRingSizes?: string[];
   images: Array<{
     id: string;
     url: string;

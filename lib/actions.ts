@@ -7,7 +7,7 @@ import { authOptions } from "./auth"
 import { prisma } from "./db"
 
 // Server action to add product to cart
-export async function addToCartAction(productId: string, quantity: number = 1) {
+export async function addToCartAction(productId: string, quantity: number = 1, selectedRingSize?: string) {
   try {
     const session = await getServerSession(authOptions)
     
@@ -53,23 +53,45 @@ export async function addToCartAction(productId: string, quantity: number = 1) {
       throw new Error("Insufficient stock")
     }
 
+    // Check if item already exists in cart to calculate total quantity
+    const existingCartItem = await prisma.cartItem.findUnique({
+      where: {
+        userId_productId_selectedRingSize: {
+          userId,
+          productId: productIdNum,
+          selectedRingSize: selectedRingSize || "",
+        },
+      },
+    })
+
+    const currentQuantity = existingCartItem?.quantity || 0
+    const newTotalQuantity = Math.min(currentQuantity + quantity, 9, product.stock)
+
+    if (newTotalQuantity <= 0) {
+      throw new Error("Cannot add item to cart (out of stock or limit reached)")
+    }
+
+    if (existingCartItem && newTotalQuantity === currentQuantity) {
+      return { success: true, message: "Item quantity limit reached in cart" }
+    }
+
     // Add or update cart item
     await prisma.cartItem.upsert({
       where: {
-        userId_productId: {
+        userId_productId_selectedRingSize: {
           userId,
           productId: productIdNum,
+          selectedRingSize: selectedRingSize || "",
         },
       },
       update: {
-        quantity: {
-          increment: quantity,
-        },
+        quantity: newTotalQuantity
       },
       create: {
         userId,
         productId: productIdNum,
-        quantity,
+        selectedRingSize: selectedRingSize || "",
+        quantity: newTotalQuantity,
       },
     })
 
@@ -233,6 +255,7 @@ export async function createOrderAction(orderData: any) {
               quantity: item.quantity,
               price,
               totalPrice,
+              selectedRingSize: item.selectedRingSize,
               productName: item.product.name,
               productSku: `PRD-${item.productId}`,
               productImage: item.product.images[0]?.url || null,
@@ -276,7 +299,7 @@ export async function createOrderAction(orderData: any) {
       }
 
       return newOrder
-    })
+    }, { timeout: 30000 })
 
     revalidatePath("/orders")
     revalidatePath("/cart")

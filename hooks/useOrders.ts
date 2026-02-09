@@ -12,6 +12,7 @@ interface OrderItem {
   quantity: number;
   price: number;
   totalPrice: number;
+  selectedRingSize?: string | null;
 }
 
 interface Order {

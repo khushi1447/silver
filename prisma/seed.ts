@@ -93,6 +93,7 @@ async function main() {
       categoryId: categories[0].id, // Rings
       weight: 3.5,
       size: '6',
+      availableRingSizes: ['5', '6', '7', '8', '9'],
       certification: 'GIA',
       // status: 'active',
     },
@@ -148,6 +149,7 @@ async function main() {
       categoryId: categories[0].id, // Rings
       weight: 8.1,
       size: '7',
+      availableRingSizes: ['6', '7', '8', '9'],
       // status: 'active',
     },
     {

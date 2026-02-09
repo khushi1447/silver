@@ -9,6 +9,7 @@ const createOrderSchema = z.object({
   items: z.array(z.object({
     productId: z.number().int().positive(),
     quantity: z.number().int().positive(),
+    selectedRingSize: z.string().optional().nullable(),
   })).min(1, "At least one item is required"),
   billingAddress: z.object({
     firstName: z.string().min(1),
@@ -143,6 +144,7 @@ export async function GET(request: NextRequest) {
         quantity: item.quantity,
         price: parseFloat(item.price.toString()),
         totalPrice: parseFloat(item.totalPrice.toString()),
+        selectedRingSize: item.selectedRingSize,
       })),
       pricing: {
         subtotal: parseFloat(order.subtotal.toString()),
@@ -254,6 +256,7 @@ export async function POST(request: NextRequest) {
           return {
             productId: item.productId,
             quantity: item.quantity,
+            selectedRingSize: item.selectedRingSize || "",
             product,
           };
         })
@@ -347,6 +350,7 @@ export async function POST(request: NextRequest) {
               productName: item.product.name,
               productSku: `PRD-${item.product.id}`,
               productImage: item.product.images[0]?.url || null,
+              selectedRingSize: item.selectedRingSize || "",
             },
           });
         })

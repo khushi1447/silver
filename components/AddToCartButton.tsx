@@ -9,6 +9,8 @@ import { useToast } from "@/hooks/use-toast"
 
 interface AddToCartButtonProps {
   productId: string
+  quantity?: number
+  selectedSize?: string
   className?: string
   variant?: "default" | "outline" | "ghost"
   size?: "sm" | "md" | "lg"
@@ -17,6 +19,8 @@ interface AddToCartButtonProps {
 
 export default function AddToCartButton({
   productId,
+  quantity = 1,
+  selectedSize = "",
   className = "",
   variant = "default",
   size = "md",
@@ -34,7 +38,7 @@ export default function AddToCartButton({
     try {
       if (isAuthenticated) {
         // Use server action for authenticated users
-        const result = await addToCartAction(productId, 1)
+        const result = await addToCartAction(productId, quantity, selectedSize)
         
         if (result.success) {
           setIsAdded(true)
@@ -55,7 +59,7 @@ export default function AddToCartButton({
         }
       } else {
         // Use unified cart for guest users
-        await addToCart(productId, 1)
+        await addToCart(productId, quantity, selectedSize)
         setIsAdded(true)
         // Show success toast
         toast({

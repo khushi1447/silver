@@ -123,6 +123,7 @@ export async function GET(
         quantity: item.quantity,
         price: parseFloat(item.price.toString()),
         totalPrice: parseFloat(item.totalPrice.toString()),
+        selectedRingSize: item.selectedRingSize,
         product: item.product ? {
           id: item.product.id,
           name: item.product.name,

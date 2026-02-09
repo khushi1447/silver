@@ -19,6 +19,7 @@ interface GuestCartItem {
   }
   quantity: number
   price: number
+  selectedRingSize: string | null
   addedAt: string
 }
 
@@ -84,7 +85,7 @@ export function useGuestCart() {
   }, [])
 
   // Add item to guest cart
-  const addToCart = useCallback(async (productId: string, quantity: number = 1) => {
+  const addToCart = useCallback(async (productId: string, quantity: number = 1, selectedRingSize: string = "") => {
     if (!isInitialized || isUpdatingRef.current) {
       console.log('Cart not ready for updates')
       return
@@ -104,8 +105,10 @@ export function useGuestCart() {
 
       // Update cart state
       setCart(currentCart => {
-        // Check if item already exists in cart
-        const existingItemIndex = currentCart.items.findIndex(item => item.productId === productId)
+        // Check if item already exists in cart with SAME SIZE
+        const existingItemIndex = currentCart.items.findIndex(item => 
+          item.productId === productId && (item.selectedRingSize || "") === selectedRingSize
+        )
         
         if (existingItemIndex >= 0) {
           // Update existing item quantity
@@ -133,6 +136,7 @@ export function useGuestCart() {
             },
             quantity,
             price: product.price * quantity,
+            selectedRingSize: selectedRingSize || null,
             addedAt: new Date().toISOString()
           }
           
@@ -155,12 +159,14 @@ export function useGuestCart() {
   }, [fetchProductDetails, isInitialized])
 
   // Update item quantity in guest cart
-  const updateCartItem = useCallback((productId: string, quantity: number) => {
-    console.log('Updating cart item:', productId, 'to quantity:', quantity)
+  const updateCartItem = useCallback((productId: string, quantity: number, selectedRingSize: string = "") => {
+    console.log('Updating cart item:', productId, 'to quantity:', quantity, 'size:', selectedRingSize)
     setCart(currentCart => {
       // If quantity is 0 or less, remove the item
       if (quantity <= 0) {
-        const updatedItems = currentCart.items.filter(item => item.productId !== productId)
+        const updatedItems = currentCart.items.filter(item => 
+          !(item.productId === productId && (item.selectedRingSize || "") === selectedRingSize)
+        )
         const newCart = {
           items: updatedItems,
           total: updatedItems.reduce((sum, item) => sum + item.price, 0),
@@ -171,7 +177,7 @@ export function useGuestCart() {
       }
 
       const updatedItems = currentCart.items.map(item => {
-        if (item.productId === productId) {
+        if (item.productId === productId && (item.selectedRingSize || "") === selectedRingSize) {
           return {
             ...item,
             quantity,
@@ -192,10 +198,12 @@ export function useGuestCart() {
   }, [])
 
   // Remove item from guest cart
-  const removeFromCart = useCallback((productId: string) => {
-    console.log('Removing product from guest cart:', productId)
+  const removeFromCart = useCallback((productId: string, selectedRingSize: string = "") => {
+    console.log('Removing product from guest cart:', productId, 'size:', selectedRingSize)
     setCart(currentCart => {
-      const updatedItems = currentCart.items.filter(item => item.productId !== productId)
+      const updatedItems = currentCart.items.filter(item => 
+        !(item.productId === productId && (item.selectedRingSize || "") === selectedRingSize)
+      )
       
       const newCart = {
         items: updatedItems,
@@ -220,7 +228,8 @@ export function useGuestCart() {
   const getCartForMerge = useCallback(() => {
     return cart.items.map(item => ({
       productId: parseInt(item.productId),
-      quantity: item.quantity
+      quantity: item.quantity,
+      selectedRingSize: item.selectedRingSize || ""
     }))
   }, [cart])
 

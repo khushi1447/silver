@@ -300,11 +300,16 @@ export default function CheckoutForm() {
             <>
               <div className="space-y-3 mb-4">
                 {cart.items.map((item) => (
-                  <div key={item.id} className="flex justify-between">
-                    <span>
-                      {item.product.name} × {item.quantity}
-                    </span>
-                    <span>₹{(item.price * item.quantity).toFixed(2)}</span>
+                  <div key={`${item.id}-${item.selectedRingSize || 'none'}`} className="flex justify-between text-sm sm:text-base">
+                    <div className="flex flex-col">
+                      <span>
+                        {item.product.name} × {item.quantity}
+                      </span>
+                      {item.selectedRingSize && (
+                        <span className="text-xs text-purple-600 font-medium">Size: {item.selectedRingSize}</span>
+                      )}
+                    </div>
+                    <span className="font-medium">₹{(item.price * item.quantity).toFixed(2)}</span>
                   </div>
                 ))}
               </div>
