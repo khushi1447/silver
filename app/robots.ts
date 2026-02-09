@@ -19,6 +19,7 @@ export default function robots(): MetadataRoute.Robots {
           "/images/",
           "/css/",
           "/js/",
+          "/favicon.ico",
         ],
         disallow: [
           "/admin",

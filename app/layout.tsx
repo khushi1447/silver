@@ -31,6 +31,14 @@ export const metadata: Metadata = {
     siteName: "Silver Line",
     type: "website",
     locale: "en_US",
+    images: [
+      {
+        url: "/images/logo.png",
+        width: 1200,
+        height: 630,
+        alt: "SILVER LINE - The Endless Shine of Silver",
+      },
+    ],
   },
 
   twitter: {
@@ -50,9 +58,12 @@ export const metadata: Metadata = {
   },
 
   icons: {
-    icon: "/images/Logo.jpeg",
-    shortcut: "/images/Logo.jpeg",
-    apple: "/images/Logo.jpeg",
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/images/logo.png", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: "/images/logo.png",
   },
 
   generator: "v0.dev",
