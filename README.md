@@ -25,3 +25,14 @@ npm run dev
 ## Environment
 
 Required variables: `DATABASE_URL`, `DIRECT_URL`, `NEXTAUTH_SECRET`, `NEXTAUTH_URL`. See `.env.example` for full list.
+
+## Vercel Deployment
+
+1. Import this repo at [vercel.com](https://vercel.com) → New Project
+2. Add environment variables (Settings → Environment Variables):
+   - `DATABASE_URL`, `DIRECT_URL` (Neon)
+   - `NEXTAUTH_SECRET`, `NEXTAUTH_URL` (use your Vercel URL, e.g. `https://your-app.vercel.app`)
+   - `NEXT_PUBLIC_API_URL` (same as NEXTAUTH_URL)
+   - `JWT_SECRET` (admin panel)
+   - Razorpay, Delhivery, Email vars as needed
+3. Deploy — Vercel auto-builds on push to main
