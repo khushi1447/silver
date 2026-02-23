@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import bcrypt from "bcryptjs";
+import { randomBytes } from "crypto";
 import { prisma } from "@/lib/db";
+import { authOptions } from "@/lib/auth";
 import { z } from "zod";
 
 // Validation schema for creating reviews
@@ -17,7 +20,7 @@ const createReviewSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
     const body = await request.json();
     const validatedData = createReviewSchema.parse(body);
     
@@ -113,13 +116,12 @@ export async function POST(request: NextRequest) {
       });
 
       if (!guestUser) {
-        // Create a guest user
         guestUser = await prisma.user.create({
           data: {
             firstName,
             lastName,
             email,
-            password: "guest", // Temporary password for guest users
+            password: await bcrypt.hash(randomBytes(32).toString("hex"), 10),
           },
         });
       }

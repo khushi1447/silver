@@ -1,12 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
+import { prisma } from "@/lib/db";
 
 export async function POST(request: NextRequest) {
   try {
+    const jwtSecret = process.env.JWT_SECRET || (process.env.NODE_ENV === "development" ? "dev-secret-change-in-production" : undefined);
+    if (!jwtSecret) {
+      return NextResponse.json(
+        { message: "Server misconfiguration: JWT_SECRET required" },
+        { status: 500 }
+      );
+    }
+
     const { email, password } = await request.json();
 
-    // Basic validation
     if (!email || !password) {
       return NextResponse.json(
         { message: "Email and password are required" },
@@ -14,28 +23,40 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // For demo purposes, using hardcoded admin credentials
-    // In production, this should check against a secure admin user database
-    const adminCredentials = {
-      email: "admin@jewelry-store.com",
-      password: "admin123", // In production, this should be hashed
-    };
+    let adminUser = await prisma.user.findFirst({
+      where: { email, isAdmin: true },
+    });
 
-    if (email !== adminCredentials.email || password !== adminCredentials.password) {
+    if (!adminUser && process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD) {
+      if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
+        adminUser = await prisma.user.upsert({
+          where: { email },
+          update: { isAdmin: true },
+          create: {
+            firstName: "Admin",
+            lastName: "User",
+            email,
+            password: await bcrypt.hash(password, 10),
+            isAdmin: true,
+          },
+        });
+      }
+    }
+
+    if (!adminUser || !(await bcrypt.compare(password, adminUser.password))) {
       return NextResponse.json(
         { message: "Invalid email or password" },
         { status: 401 }
       );
     }
 
-    // Create JWT token
     const token = jwt.sign(
-      { 
-        adminId: "admin-1", 
-        email: adminCredentials.email, 
-        role: "admin" 
+      {
+        adminId: adminUser.id.toString(),
+        email: adminUser.email,
+        role: "admin",
       },
-      process.env.JWT_SECRET || "your-secret-key",
+      jwtSecret,
       { expiresIn: "8h" }
     );
 
@@ -50,13 +71,13 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(
-      { 
+      {
         message: "Login successful",
         user: {
-          email: adminCredentials.email,
+          email: adminUser.email,
           role: "admin",
-          name: "Admin User"
-        }
+          name: `${adminUser.firstName} ${adminUser.lastName}`.trim() || "Admin",
+        },
       },
       { status: 200 }
     );

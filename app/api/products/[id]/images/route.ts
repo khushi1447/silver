@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/db";
+import { authOptions } from "@/lib/auth";
 import { z } from "zod";
 
 // Validation schema for image operations
@@ -13,10 +14,11 @@ const imageSchema = z.object({
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const productId = parseInt(params.id);
+    const { id } = await params;
+    const productId = parseInt(id);
     
     if (isNaN(productId)) {
       return NextResponse.json(
@@ -42,10 +44,11 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession();
+    const { id } = await params;
+    const session = await getServerSession(authOptions);
     
     if (!session?.user?.isAdmin) {
       return NextResponse.json(
@@ -54,7 +57,7 @@ export async function POST(
       );
     }
     
-    const productId = parseInt(params.id);
+    const productId = parseInt(id);
     
     if (isNaN(productId)) {
       return NextResponse.json(
@@ -122,10 +125,11 @@ export async function POST(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession();
+    const { id } = await params;
+    const session = await getServerSession(authOptions);
     
     if (!session?.user?.isAdmin) {
       return NextResponse.json(
@@ -134,7 +138,7 @@ export async function PUT(
       );
     }
     
-    const productId = parseInt(params.id);
+    const productId = parseInt(id);
     
     if (isNaN(productId)) {
       return NextResponse.json(

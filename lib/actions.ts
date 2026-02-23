@@ -109,7 +109,7 @@ export async function addToCartAction(productId: string, quantity: number = 1, s
 // Server action to update cart item quantity
 export async function updateCartItemAction(productId: string, quantity: number) {
   try {
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
     
     if (!session?.user) {
       throw new Error("You must be logged in to update cart")
@@ -134,7 +134,7 @@ export async function updateCartItemAction(productId: string, quantity: number) 
 // Server action to remove item from cart
 export async function removeFromCartAction(productId: string) {
   try {
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
     
     if (!session?.user) {
       throw new Error("You must be logged in to remove items from cart")
@@ -321,7 +321,7 @@ export async function createOrderAction(orderData: any) {
 // Server action to add product to wishlist
 export async function addToWishlistAction(productId: string) {
   try {
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
     
     if (!session?.user) {
       throw new Error("You must be logged in to add items to wishlist")
@@ -346,7 +346,7 @@ export async function addToWishlistAction(productId: string) {
 // Server action to remove product from wishlist
 export async function removeFromWishlistAction(productId: string) {
   try {
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
     
     if (!session?.user) {
       throw new Error("You must be logged in to remove items from wishlist")
@@ -371,7 +371,7 @@ export async function removeFromWishlistAction(productId: string) {
 // Server action to create review
 export async function createReviewAction(reviewData: any) {
   try {
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
     
     if (!session?.user) {
       throw new Error("You must be logged in to create a review")
@@ -396,7 +396,7 @@ export async function createReviewAction(reviewData: any) {
 // Server action to update user profile
 export async function updateProfileAction(userData: any) {
   try {
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
     
     if (!session?.user) {
       throw new Error("You must be logged in to update profile")
@@ -421,7 +421,7 @@ export async function updateProfileAction(userData: any) {
 // Server action to create address
 export async function createAddressAction(addressData: any) {
   try {
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
     
     if (!session?.user) {
       throw new Error("You must be logged in to add addresses")
@@ -446,7 +446,7 @@ export async function createAddressAction(addressData: any) {
 // Server action to update address
 export async function updateAddressAction(id: string, addressData: any) {
   try {
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
     
     if (!session?.user) {
       throw new Error("You must be logged in to update addresses")
@@ -471,7 +471,7 @@ export async function updateAddressAction(id: string, addressData: any) {
 // Server action to delete address
 export async function deleteAddressAction(id: string) {
   try {
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
     
     if (!session?.user) {
       throw new Error("You must be logged in to delete addresses")
@@ -496,7 +496,7 @@ export async function deleteAddressAction(id: string) {
 // Server action to create coupon
 export async function createCouponAction(couponData: any) {
   try {
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
     
     if (!session?.user?.isAdmin) {
       throw new Error("You must be an admin to create coupons")
@@ -521,7 +521,7 @@ export async function createCouponAction(couponData: any) {
 // Server action to update coupon
 export async function updateCouponAction(id: string, couponData: any) {
   try {
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
     
     if (!session?.user?.isAdmin) {
       throw new Error("You must be an admin to update coupons")
@@ -546,7 +546,7 @@ export async function updateCouponAction(id: string, couponData: any) {
 // Server action to delete coupon
 export async function deleteCouponAction(id: string) {
   try {
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
     
     if (!session?.user?.isAdmin) {
       throw new Error("You must be an admin to delete coupons")

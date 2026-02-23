@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/db";
+import { authOptions } from "@/lib/auth";
 import { z } from "zod";
 
 // Validation schema for updating addresses
@@ -21,10 +22,11 @@ const updateAddressSchema = z.object({
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession();
+    const { id } = await params;
+    const session = await getServerSession(authOptions);
     
     if (!session?.user?.id) {
       return NextResponse.json(
@@ -34,7 +36,7 @@ export async function PUT(
     }
     
     const userId = parseInt(session.user.id);
-    const addressId = parseInt(params.id);
+    const addressId = parseInt(id);
     
     if (isNaN(addressId)) {
       return NextResponse.json(
@@ -106,10 +108,11 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession();
+    const { id } = await params;
+    const session = await getServerSession(authOptions);
     
     if (!session?.user?.id) {
       return NextResponse.json(
@@ -119,7 +122,7 @@ export async function DELETE(
     }
     
     const userId = parseInt(session.user.id);
-    const addressId = parseInt(params.id);
+    const addressId = parseInt(id);
     
     if (isNaN(addressId)) {
       return NextResponse.json(

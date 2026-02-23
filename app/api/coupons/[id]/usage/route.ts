@@ -5,15 +5,16 @@ import { prisma } from "@/lib/db";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerSession(authOptions);
     if (!session?.user?.isAdmin) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const couponId = parseInt(params.id);
+    const couponId = parseInt(id);
     if (isNaN(couponId)) {
       return NextResponse.json({ error: "Invalid coupon ID" }, { status: 400 });
     }

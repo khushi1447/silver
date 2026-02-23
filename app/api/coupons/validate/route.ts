@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/db";
+import { authOptions } from "@/lib/auth";
 import { z } from "zod";
 
 // Validation schema for coupon validation
@@ -71,7 +72,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Check per-user limit (if user is authenticated)
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
     if (session?.user?.id && coupon.perUserLimit) {
       const userUsageCount = await prisma.order.count({
         where: {

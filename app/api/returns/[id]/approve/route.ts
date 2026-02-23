@@ -5,14 +5,15 @@ import { prisma } from "@/lib/db"
 import { approveReturnSchema } from "@/lib/validation/returns"
 import { getDelhiveryService, getEnvPickupAddress } from "@/lib/delhivery"
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id: paramId } = await params;
     const session = await getServerSession(authOptions)
     if (!session?.user?.isAdmin) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const id = Number(params.id)
+    const id = Number(paramId)
     if (!id) return NextResponse.json({ error: "Invalid id" }, { status: 400 })
 
     const body = await request.json().catch(() => ({}))

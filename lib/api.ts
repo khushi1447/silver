@@ -31,9 +31,14 @@ class ApiClient {
 
       if (typeof window === 'undefined') {
         // Server-side: construct full URL for internal API calls
-        const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
-        const host = process.env.VERCEL_URL || 'localhost:3000';
-        url = `${protocol}://${host}${endpoint}`;
+        const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_API_URL;
+        if (baseUrl) {
+          url = `${baseUrl.replace(/\/$/, '')}${endpoint}`;
+        } else {
+          const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http';
+          const host = process.env.VERCEL_URL || 'localhost:3000';
+          url = `${protocol}://${host}${endpoint}`;
+        }
       } else {
         // Client-side: use relative URL
         url = endpoint;
@@ -48,7 +53,6 @@ class ApiClient {
         ...options,
       };
 
-      console.log('API request URL:', url);
       const response = await fetch(url, config);
 
       if (!response.ok) {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/db";
+import { authOptions } from "@/lib/auth";
 import { z } from "zod";
 
 // Validation schema for updating settings
@@ -13,11 +14,11 @@ const updateSettingSchema = z.object({
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { key: string } }
+  { params }: { params: Promise<{ key: string }> }
 ) {
   try {
-    const session = await getServerSession();
-    const settingKey = params.key;
+    const { key: settingKey } = await params;
+    const session = await getServerSession(authOptions);
     
     const setting = await prisma.setting.findUnique({
       where: { key: settingKey },
@@ -60,10 +61,11 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { key: string } }
+  { params }: { params: Promise<{ key: string }> }
 ) {
   try {
-    const session = await getServerSession();
+    const { key: settingKey } = await params;
+    const session = await getServerSession(authOptions);
     
     if (!session?.user?.isAdmin) {
       return NextResponse.json(
@@ -71,8 +73,6 @@ export async function PUT(
         { status: 401 }
       );
     }
-    
-    const settingKey = params.key;
     const body = await request.json();
     const validatedData = updateSettingSchema.parse(body);
     
@@ -123,10 +123,11 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { key: string } }
+  { params }: { params: Promise<{ key: string }> }
 ) {
   try {
-    const session = await getServerSession();
+    const { key: settingKey } = await params;
+    const session = await getServerSession(authOptions);
     
     if (!session?.user?.isAdmin) {
       return NextResponse.json(
@@ -134,8 +135,6 @@ export async function DELETE(
         { status: 401 }
       );
     }
-    
-    const settingKey = params.key;
     
     // Check if setting exists
     const existingSetting = await prisma.setting.findUnique({

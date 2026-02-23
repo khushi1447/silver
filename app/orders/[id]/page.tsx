@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import { getServerSession } from 'next-auth'
 import { prisma } from '@/lib/db'
+import { authOptions } from '@/lib/auth'
 import PaymentStatus from '@/components/PaymentStatus'
 import { CheckCircleIcon, ClockIcon, XCircleIcon } from '@heroicons/react/24/solid'
 
@@ -50,7 +51,7 @@ const statusConfig = {
 }
 
 export default async function OrderPage({ params }: OrderPageProps) {
-  const session = await getServerSession()
+  const session = await getServerSession(authOptions)
   const { id } = await params
   const order = await getOrder(id, session?.user?.id)
 

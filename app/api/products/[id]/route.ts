@@ -127,7 +127,7 @@ export async function GET(
     }
     
     // Check if user is admin or product has stock
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
     if (!session?.user?.isAdmin && product.stock <= 0) {
       return NextResponse.json(
         { error: "Product not found" },

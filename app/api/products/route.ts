@@ -63,10 +63,8 @@ async function checkAdminAuth() {
     const cookieStore = await cookies();
     const adminToken = cookieStore.get("admin-token")?.value;
 
-    if (adminToken) {
-      const jwtSecret = process.env.JWT_SECRET || "your-secret-key";
-      const decoded = jwt.verify(adminToken, jwtSecret) as any;
-      console.log("JWT decoded:", decoded);
+    if (adminToken && process.env.JWT_SECRET) {
+      const decoded = jwt.verify(adminToken, process.env.JWT_SECRET) as { role?: string };
       return decoded.role === "admin";
     }
   } catch (error) {
