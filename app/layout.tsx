@@ -2,6 +2,8 @@ import type React from "react"
 import type { Metadata } from "next"
 import Script from "next/script"
 
+import { Analytics } from "@vercel/analytics/next"
+
 import "./globals.css"
 import WhatsAppFloat from "@/components/WhatsAppFloat"
 import Providers from "@/components/Providers"
@@ -111,6 +113,7 @@ export default function RootLayout({
           {children}
           <WhatsAppFloat />
           <Toaster />
+          <Analytics />
         </Providers>
       </body>
     </html>
