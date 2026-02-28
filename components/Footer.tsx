@@ -78,6 +78,22 @@ export default function Footer() {
               </li>
               <li>
                 <Link
+                  href="/collection"
+                  className="text-gray-400 hover:text-white transition-colors hover:translate-x-1 transform duration-200 inline-block text-sm sm:text-base"
+                >
+                  Collection
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/blog"
+                  className="text-gray-400 hover:text-white transition-colors hover:translate-x-1 transform duration-200 inline-block text-sm sm:text-base"
+                >
+                   Blog
+                </Link>
+              </li>
+              <li>
+                <Link
                   href="/contact"
                   className="text-gray-400 hover:text-white transition-colors hover:translate-x-1 transform duration-200 inline-block text-sm sm:text-base"
                 >

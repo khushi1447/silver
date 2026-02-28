@@ -13,6 +13,25 @@ export const metadata: Metadata = {
 // Blog posts data - in a real app, this would come from a database or CMS
 const blogPosts = [
   {
+    id: "office-friendly-silver-jewellery-styling-tips",
+    title: "Office Friendly Silver Jewellery Styling Tips for a Polished Look",
+    excerpt:
+      "Discover elegant and office friendly silver jewellery styling tips to elevate your workwear. Learn how to choose subtle, professional pieces for a polished everyday look.",
+    image: "/images/blog6.png",
+    date: new Date().toISOString(),
+    category: "Styling Guide",
+  },
+  {
+    id: "how-to-measure-ring-size-at-home",
+    title: "How to Measure Ring Size at Home | Accurate Sizing Guide",
+    excerpt:
+      "Don't guess your fit. Learn how to accurately measure your ring size at home using simple tools. Perfect for shopping Silverline925 sterling silver rings.",
+    image: "/images/blog7.png",
+    date: new Date().toISOString(),
+    category: "Sizing Guide",
+  },
+ 
+  {
     id: "blog-sterling-silver-vs-pure-silver-difference",
     title: "Sterling Silver vs Pure Silver: Key Differences, Benefits and Buying Guide",
     excerpt:
@@ -48,9 +67,8 @@ const blogPosts = [
     date: new Date().toISOString(),
     category: "Jewelry Tips",
   },
-
+  
 ]
-
 export default function BlogPage() {
   return (
     <div className="min-h-screen bg-gray-50">
