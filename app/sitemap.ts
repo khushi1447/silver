@@ -36,6 +36,7 @@ const pages: PageConfig[] = [
   { path: "/blog/dos-donts-wearing-statement-jewelry", priority: 0.6, changeFrequency: "monthly" },
   { path: "/blog/how-to-measure-ring-size-at-home", priority: 0.6, changeFrequency: "monthly" },
   { path: "/blog/office-friendly-silver-jewellery-styling-tips", priority: 0.6, changeFrequency: "monthly" },
+  { path: "/blog/everyday-silver-jewellery-essentials-every-woman-should-own", priority: 0.6, changeFrequency: "monthly" },
 
   // Core Information Pages
   { path: "/about", priority: 0.5, changeFrequency: "monthly" },
