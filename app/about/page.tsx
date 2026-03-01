@@ -1,25 +1,20 @@
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
+import JsonLd from "@/components/JsonLd"
+import { breadcrumbSchema } from "@/lib/seo-schemas"
+import { SITE_URL } from "@/lib/seo"
 import { Award, Users, Heart, Gem } from "lucide-react"
 
-const metadata = {
-  title: "About Us - Silver Line",
+export const metadata = {
+  title: "About Us",
   description: "Learn about Silver Line's story, craftsmanship, and commitment to creating beautiful jewelry. Discover our values and passion for excellence.",
   keywords: "about Silver Line, jewelry story, craftsmanship, handmade jewelry, our values",
+  alternates: { canonical: `${SITE_URL}/about` },
   openGraph: {
     title: "About Us - Silver Line",
     description: "Learn about Silver Line's story, craftsmanship, and commitment to creating beautiful jewelry.",
-    url: "https://silverline925.in/about",
+    url: `${SITE_URL}/about`,
     siteName: "Silver Line",
-    images: [
-      {
-        url: "/placeholder.jpg",
-        width: 1200,
-        height: 630,
-        alt: "About Silver Line",
-      },
-    ],
-    locale: "en_US",
     type: "website",
   },
 }
@@ -28,6 +23,7 @@ const metadata = {
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-gray-50">
+      <JsonLd data={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "About Us", url: "/about" }])} />
       <Header />
 
       {/* Hero Section */}

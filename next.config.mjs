@@ -1,5 +1,16 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  async redirects() {
+    return [
+      // Canonical: redirect non-www to www
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "silverline925.in" }],
+        destination: "https://www.silverline925.in/:path*",
+        permanent: true,
+      },
+    ]
+  },
   eslint: {
     ignoreDuringBuilds: true,
   },

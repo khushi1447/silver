@@ -51,27 +51,25 @@ const createProductSchema = z.object({
 });
 
 // Helper function to check admin authentication
+// Fast path: no admin-token = not admin (skips getServerSession for ~99% of requests)
 async function checkAdminAuth() {
-  // First try NextAuth session
-  const session = await getServerSession(authOptions);
-  if (session?.user?.isAdmin) {
-    return true;
-  }
+  const cookieStore = await cookies();
+  const adminToken = cookieStore.get("admin-token")?.value;
 
-  // Fallback to JWT admin token
-  try {
-    const cookieStore = await cookies();
-    const adminToken = cookieStore.get("admin-token")?.value;
-
-    if (adminToken && process.env.JWT_SECRET) {
+  if (adminToken && process.env.JWT_SECRET) {
+    try {
       const decoded = jwt.verify(adminToken, process.env.JWT_SECRET) as { role?: string };
       return decoded.role === "admin";
+    } catch {
+      // Invalid token, fall through
     }
-  } catch (error) {
-    console.error("JWT verification error:", error);
   }
 
-  return false;
+  // No admin-token: skip getServerSession for public product listing (assume not admin)
+  if (!adminToken) return false;
+
+  const session = await getServerSession(authOptions);
+  return !!session?.user?.isAdmin;
 }
 
 export async function GET(request: NextRequest) {

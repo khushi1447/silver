@@ -20,9 +20,6 @@ export default function Header() {
   const { isAuthenticated } = useAuth();
   const { count: wishlistCount } = useUnifiedWishlist();
 
-  // Debug: Log cart state changes
-  console.log('Header render - cart items:', cart?.items?.length || 0);
-
   const handleSearch = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (searchQuery.trim()) {

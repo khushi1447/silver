@@ -1,19 +1,22 @@
 import { Metadata } from "next"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
+import JsonLd from "@/components/JsonLd"
+import { breadcrumbSchema } from "@/lib/seo-schemas"
 import CollectionProducts from "@/components/CollectionProducts"
 
 export const metadata: Metadata = {
   title: "Buy Best Silver Rings for Men at Best Price Online",
   description:
     "Explore the best silver rings for men featuring bold designs, premium sterling silver and perfect fits. Shop the latest collection at Silverline925.",
+  alternates: { canonical: "https://www.silverline925.in/collection/silver-rings-men" },
   keywords:
     "best silver rings for men, silver rings men, sterling silver rings men, men rings, mens silver rings, bold men rings, Silverline925",
   openGraph: {
     title: "Buy Best Silver Rings for Men at Best Price Online",
     description:
       "Explore the best silver rings for men featuring bold designs, premium sterling silver and perfect fits. Shop the latest collection at Silverline925.",
-    url: "https://silverline925.in/collections/silver-rings-men",
+    url: "https://www.silverline925.in/collection/silver-rings-men",
     siteName: "Silver Line",
     type: "article",
   },
@@ -22,6 +25,7 @@ export const metadata: Metadata = {
 export default function SilverRingsMenPage() {
   return (
     <div className="min-h-screen bg-gray-50">
+      <JsonLd data={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Collection", url: "/shop" }, { name: "Silver Rings for Men", url: "/collection/silver-rings-men" }])} />
       <Header />
 
       {/* Hero Section */}

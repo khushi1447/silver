@@ -2,6 +2,8 @@ import { Metadata } from "next"
 import Image from "next/image"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
+import JsonLd from "@/components/JsonLd"
+import { articleSchema, breadcrumbSchema } from "@/lib/seo-schemas"
 import { Calendar, Clock } from "lucide-react"
 
 export const metadata: Metadata = {
@@ -10,11 +12,12 @@ export const metadata: Metadata = {
     "Discover elegant and office friendly silver jewellery styling tips to elevate your workwear. Learn how to choose subtle, professional pieces for a polished everyday look.",
   keywords:
     "office jewellery, silver jewellery styling, professional jewellery, workwear accessories, sterling silver office, polished look",
+  alternates: { canonical: "https://www.silverline925.in/blog/office-friendly-silver-jewellery-styling-tips" },
   openGraph: {
     title: "Office Friendly Silver Jewellery Styling Tips for a Polished Look",
     description:
       "Discover elegant and office friendly silver jewellery styling tips to elevate your workwear. Learn how to choose subtle, professional pieces for a polished everyday look.",
-    url: "https://silverline925.in/blog/office-friendly-silver-jewellery-styling-tips",
+    url: "https://www.silverline925.in/blog/office-friendly-silver-jewellery-styling-tips",
     siteName: "Silver Line",
     type: "article",
     images: [
@@ -31,9 +34,18 @@ export const metadata: Metadata = {
 export default function OfficeFriendlySilverJewelleryPage() {
   const publishDate = new Date().toISOString()
   const readTime = "5 min read"
+  const title = "Office Friendly Silver Jewellery Styling Tips for a Polished Look"
+  const description = "Discover elegant and office friendly silver jewellery styling tips to elevate your workwear. Learn how to choose subtle, professional pieces for a polished everyday look."
+  const url = "/blog/office-friendly-silver-jewellery-styling-tips"
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <JsonLd
+        data={[
+          articleSchema({ title, description, url, image: "/images/blog6.png", datePublished: publishDate }),
+          breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Blog", url: "/blog" }, { name: title, url }]),
+        ]}
+      />
       <Header />
 
       {/* Hero Section */}

@@ -1,19 +1,22 @@
 import { Metadata } from "next"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
+import JsonLd from "@/components/JsonLd"
+import { breadcrumbSchema } from "@/lib/seo-schemas"
 import CollectionProducts from "@/components/CollectionProducts"
 
 export const metadata: Metadata = {
   title: "Buy Best Silver Rings for Women Online at Silverline925",
   description:
     "Discover the best silver rings for women, crafted with elegant designs and premium quality silver. Perfect for daily wear, occasions, and gifting. Explore trending styles at Silverline925.",
+  alternates: { canonical: "https://www.silverline925.in/collection/silver-rings-women" },
   keywords:
     "best silver rings for women, silver rings women, sterling silver rings women, women rings, womens silver rings, elegant women rings, Silverline925",
   openGraph: {
     title: "Buy Best Silver Rings for Women Online at Silverline925",
     description:
       "Discover the best silver rings for women, crafted with elegant designs and premium quality silver. Perfect for daily wear, occasions, and gifting. Explore trending styles at Silverline925.",
-    url: "https://silverline925.in/collections/silver-rings-women",
+    url: "https://www.silverline925.in/collection/silver-rings-women",
     siteName: "Silver Line",
     type: "article",
   },
@@ -22,6 +25,7 @@ export const metadata: Metadata = {
 export default function SilverRingsWomenPage() {
   return (
     <div className="min-h-screen bg-gray-50">
+      <JsonLd data={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Collection", url: "/shop" }, { name: "Silver Rings for Women", url: "/collection/silver-rings-women" }])} />
       <Header />
 
       {/* Hero Section */}

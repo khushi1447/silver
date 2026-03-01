@@ -2,6 +2,8 @@ import { Metadata } from "next"
 import Image from "next/image"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
+import JsonLd from "@/components/JsonLd"
+import { articleSchema, breadcrumbSchema } from "@/lib/seo-schemas"
 import { Calendar, Clock } from "lucide-react"
 
 export const metadata: Metadata = {
@@ -10,11 +12,12 @@ export const metadata: Metadata = {
     "Discover the must have everyday silver jewellery essentials every woman should own. Explore sterling silver rings, earrings, chains, and bracelets perfect for daily wear.",
   keywords:
     "everyday silver jewellery, silver jewellery essentials, sterling silver daily wear, silver rings, silver earrings, silver necklaces",
+  alternates: { canonical: "https://www.silverline925.in/blog/everyday-silver-jewellery-essentials-every-woman-should-own" },
   openGraph: {
     title: "Everyday Silver Jewellery Essentials Every Woman Should Own | Silverline925",
     description:
       "Discover the must have everyday silver jewellery essentials every woman should own. Explore sterling silver rings, earrings, chains, and bracelets perfect for daily wear.",
-    url: "https://silverline925.in/blog/everyday-silver-jewellery-essentials-every-woman-should-own",
+    url: "https://www.silverline925.in/blog/everyday-silver-jewellery-essentials-every-woman-should-own",
     siteName: "Silver Line",
     type: "article",
     images: [
@@ -31,9 +34,18 @@ export const metadata: Metadata = {
 export default function EverydaySilverJewelleryEssentialsPage() {
   const publishDate = new Date().toISOString()
   const readTime = "6 min read"
+  const title = "Everyday Silver Jewellery Essentials Every Woman Should Own"
+  const description = "Discover the must have everyday silver jewellery essentials every woman should own. Explore sterling silver rings, earrings, chains, and bracelets perfect for daily wear."
+  const url = "/blog/everyday-silver-jewellery-essentials-every-woman-should-own"
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <JsonLd
+        data={[
+          articleSchema({ title, description, url, image: "/images/blog8.png", datePublished: publishDate }),
+          breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Blog", url: "/blog" }, { name: title, url }]),
+        ]}
+      />
       <Header />
 
       {/* Hero Section */}

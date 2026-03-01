@@ -1,5 +1,8 @@
 import { notFound } from "next/navigation"
 import { Metadata } from "next"
+import { SITE_URL } from "@/lib/seo"
+import { productSchema, breadcrumbSchema } from "@/lib/seo-schemas"
+import JsonLd from "@/components/JsonLd"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
 import ProductDetails from "@/components/ProductDetails"
@@ -39,7 +42,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
         images: product.images.map(img => img.url),
       },
       alternates: {
-        canonical: `https://silverline925.in/product/${productId}`,
+        canonical: `${SITE_URL}/product/${productId}`,
       },
     }
   } catch (error) {
@@ -60,19 +63,22 @@ export default async function ProductPage({ params }: ProductPageProps) {
     }
     
     const productId = parseInt(id)
-    console.log('Fetching product with ID:', productId)
-    
     const product = await getProductById(productId)
     
     if (!product) {
-      console.error('Product not found for ID:', productId)
       notFound()
     }
 
-    console.log('Product found:', product.name)
+    const breadcrumbs = breadcrumbSchema([
+      { name: "Home", url: "/" },
+      { name: "Shop", url: "/shop" },
+      { name: product.category.name, url: `/shop?category=${product.category.id}` },
+      { name: product.name, url: `/product/${product.id}` },
+    ])
 
     return (
       <div className="min-h-screen bg-gray-50">
+        <JsonLd data={[productSchema(product), breadcrumbs]} />
         <Header />
         <ProductDetails product={product as any} />
         <Footer />

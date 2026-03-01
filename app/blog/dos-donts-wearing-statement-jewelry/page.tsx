@@ -2,6 +2,8 @@ import { Metadata } from "next"
 import Image from "next/image"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
+import JsonLd from "@/components/JsonLd"
+import { articleSchema, breadcrumbSchema } from "@/lib/seo-schemas"
 import { Calendar, Clock } from "lucide-react"
 
 export const metadata: Metadata = {
@@ -10,11 +12,12 @@ export const metadata: Metadata = {
     "Learn how to wear statement jewelry with elegance. Discover the key do's and don'ts to style bold necklaces, earrings, and bracelets without overwhelming your outfit.",
   keywords:
     "statement jewelry, jewelry styling, bold jewelry, jewelry tips, statement necklaces, statement earrings, jewelry fashion",
+  alternates: { canonical: "https://www.silverline925.in/blog/dos-donts-wearing-statement-jewelry" },
   openGraph: {
     title: "The Do's and Don'ts of Wearing Statement Jewelry | Silverline925",
     description:
       "Learn how to wear statement jewelry with elegance. Discover the key do's and don'ts to style bold necklaces, earrings, and bracelets without overwhelming your outfit.",
-    url: "https://silverline925.in/blog/dos-donts-wearing-statement-jewelry",
+    url: "https://www.silverline925.in/blog/dos-donts-wearing-statement-jewelry",
     siteName: "Silver Line",
     type: "article",
     images: [
@@ -31,9 +34,18 @@ export const metadata: Metadata = {
 export default function StatementJewelryPage() {
   const publishDate = new Date().toISOString()
   const readTime = "7 min read"
+  const title = "Do's and Don'ts of Wearing Statement Jewelry"
+  const description = "Learn how to wear statement jewelry with elegance. Discover the key do's and don'ts to style bold necklaces, earrings, and bracelets without overwhelming your outfit."
+  const url = "/blog/dos-donts-wearing-statement-jewelry"
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <JsonLd
+        data={[
+          articleSchema({ title, description, url, datePublished: publishDate }),
+          breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Blog", url: "/blog" }, { name: title, url }]),
+        ]}
+      />
       <Header />
 
       {/* Hero Section */}

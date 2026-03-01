@@ -1,13 +1,17 @@
 import { Metadata } from "next"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
+import JsonLd from "@/components/JsonLd"
+import { breadcrumbSchema } from "@/lib/seo-schemas"
 import BlogCard from "@/components/BlogCard"
 
 export const metadata: Metadata = {
-  title: "Blog - Silver Line",
+  title: "Blog",
   description:
     "Discover jewelry styling tips, fashion advice, and insights from Silver Line. Learn how to style your jewelry collection with elegance and confidence.",
   keywords: "jewelry blog, styling tips, fashion advice, jewelry care, Silver Line blog",
+  alternates: { canonical: "https://www.silverline925.in/blog" },
+  openGraph: { url: "https://www.silverline925.in/blog" },
 }
 
 // Blog posts data - in a real app, this would come from a database or CMS
@@ -81,6 +85,7 @@ const blogPosts = [
 export default function BlogPage() {
   return (
     <div className="min-h-screen bg-gray-50">
+      <JsonLd data={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Blog", url: "/blog" }])} />
       <Header />
 
       {/* Hero Section */}

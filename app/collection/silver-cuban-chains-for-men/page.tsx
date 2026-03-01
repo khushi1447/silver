@@ -1,6 +1,8 @@
 import { Metadata } from "next"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
+import JsonLd from "@/components/JsonLd"
+import { breadcrumbSchema } from "@/lib/seo-schemas"
 import CollectionProducts from "@/components/CollectionProducts"
 
 export const metadata: Metadata = {
@@ -9,11 +11,12 @@ export const metadata: Metadata = {
     "Shop silver Cuban chains for men with bold styles and Premium quality. Perfect daily wear pieces in solid silver. Explore the Latest collection at Silverline925.",
   keywords:
     "silver Cuban chains, men's chains, Cuban chain, sterling silver chains, men's jewelry, silver chains for men, 925 silver chains, best price, 2026",
+  alternates: { canonical: "https://www.silverline925.in/collection/silver-cuban-chains-for-men" },
   openGraph: {
     title: "Buy Best Silver Cuban Chains for Men at Best Price in 2026",
     description:
       "Shop silver Cuban chains for men with bold styles and Premium quality. Perfect daily wear pieces in solid silver. Explore the Latest collection at Silverline925.",
-    url: "https://silverline925.in/collection/silver-cuban-chains-for-men",
+    url: "https://www.silverline925.in/collection/silver-cuban-chains-for-men",
     siteName: "Silver Line",
     type: "article",
   },
@@ -22,6 +25,7 @@ export const metadata: Metadata = {
 export default function SilverCubanChainsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
+      <JsonLd data={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Collection", url: "/shop" }, { name: "Silver Cuban Chains for Men", url: "/collection/silver-cuban-chains-for-men" }])} />
       <Header />
 
       {/* Hero Section */}

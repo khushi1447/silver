@@ -168,6 +168,103 @@ const { id } = await params;
 
 ---
 
+## 6. Return Policy, SEO & Image Updates
+
+### Return Policy contact info (`app/return-policy/page.tsx`)
+- **Updated** email from `support@elegantjewelry.com` to `silver.line9250@gmail.com`
+- **Updated** phone from `+91-99999-99999` to `+91 9512765399`
+
+### BreadcrumbList schema
+- **Added** BreadcrumbList JSON-LD to Return Policy page (Home → Return Policy)
+- **Added** BreadcrumbList JSON-LD to Cancellation Policy page (Home → Cancellation Policy)
+
+### FAQ schema removed
+- **Removed** FAQ schema from Refund Policy page (BreadcrumbList retained)
+- **Removed** FAQ schema from Shipping Policy page (BreadcrumbList retained)
+
+### Home page category images (`app/page.tsx`)
+- **Replaced** `<img>` with Next.js `Image` for category carousel images
+- Mobile (2-row horizontal scroll): both rows now use `Image` with `fill`, `sizes="140px"`
+- Desktop carousel: uses `Image` with `fill`, `sizes="(max-width: 768px) 33vw, 20vw"`
+- Improves consistency and image optimization across the site
+
+**Files updated:**
+- app/return-policy/page.tsx
+- app/cancellation-policy/page.tsx
+- app/refund-policy/page.tsx
+- app/shipping-policy/page.tsx
+- app/page.tsx
+
+---
+
+## 7. SEO & Digital Marketing
+
+### Central SEO config (`lib/seo.ts`)
+- **Added** single source of truth for SEO: `SITE_URL` (https://www.silverline925.in), `SITE_NAME`, `SITE_DESCRIPTION`, `SITE_KEYWORDS`
+- **Added** contact info: `CONTACT_EMAIL`, `CONTACT_PHONE`, `ADDRESS`, `WHATSAPP_NUMBER`
+- **Added** social links: `FACEBOOK_URL`, `INSTAGRAM_URL`
+- **Added** `GOOGLE_ANALYTICS_ID` (G-540X2R7K0E), `GOOGLE_SITE_VERIFICATION`
+- **Added** `canonicalUrl(path)` helper
+
+### Canonical redirect (`next.config.mjs`)
+- **Added** redirect: non-www → www (`silverline925.in` → `https://www.silverline925.in/:path*`)
+
+### Structured data (`lib/seo-schemas.ts`)
+- **Added** `productSchema()` for product pages
+- **Added** `articleSchema()` for blog posts
+- **Added** `breadcrumbSchema()` for navigation
+- **Added** `faqSchema()` (available; removed from policy pages per request)
+
+### Product schema
+- **Added** Product JSON-LD to product pages (`app/product/[id]/page.tsx`)
+
+### Article schema
+- **Added** Article JSON-LD to all 7 blog posts
+
+### BreadcrumbList schema
+- **Added** to: product, shop, about, contact, blog, all 10 collection pages, refund policy, shipping policy, return policy, cancellation policy
+
+### Canonical URLs
+- **Added** `alternates.canonical` to shop, about, contact, blog, collections, product, privacy, terms, policies
+
+---
+
+## 8. Performance Optimizations
+
+### Home page (`app/page.tsx`)
+- **Merged** two product fetches into one: single `useProducts` with limit 8 for both banner slider and featured section (first 4)
+
+### Categories API (`app/api/categories/route.ts`)
+- **Added** `unstable_cache` for categories with products/counts
+
+### Fonts (`app/layout.tsx`)
+- **Switched** to `next/font` (Inter, Playfair Display) for optimized font loading
+
+### Products API (`app/api/products/route.ts`)
+- **Added** fast path: skip `getServerSession` when no admin-token cookie (avoids session lookup for ~99% of public requests)
+
+---
+
+## 9. Analytics, CI/CD & Other
+
+### Vercel Analytics
+- **Added** `@vercel/analytics` in `app/layout.tsx`
+
+### GitHub Actions
+- **Added** `.github/workflows/vercel-deploy.yml`
+- **Added** `.github/workflows/deploy.yml`
+
+### Next.js upgrade
+- **Upgraded** to Next.js 15.2.8 (CVE-2025-66478)
+
+### Images config (`next.config.mjs`)
+- **Added** `images.remotePatterns` for silverline925.in, www.silverline925.in, blob.vercel-storage.com, res.cloudinary.com
+
+### ProductCard (`components/ProductCard.tsx`)
+- **Uses** Next.js `Image` with `fill`, `sizes` for product thumbnails
+
+---
+
 ## Summary
 
 | Category | Files changed | Key impact |
@@ -176,6 +273,10 @@ const { id } = await params;
 | Cleanup | 25+ removed | Cleaner codebase |
 | Security | 15+ | Auth consistency, no hardcoded credentials |
 | Next.js 15 | 14 | API routes no longer crash |
+| Return Policy, SEO & Images | 5 | Correct contact info, BreadcrumbList on policies, Next.js Image for categories |
+| SEO & Digital Marketing | 20+ | Canonical URLs, structured data, Google Analytics |
+| Performance | 4 | Fewer fetches, cached categories, optimized fonts, fast Products API |
+| Analytics, CI/CD & Other | 5+ | Vercel Analytics, GitHub Actions, Next.js upgrade, image domains |
 
 ---
 

@@ -1,19 +1,22 @@
 import { Metadata } from "next"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
+import JsonLd from "@/components/JsonLd"
+import { breadcrumbSchema } from "@/lib/seo-schemas"
 import CollectionProducts from "@/components/CollectionProducts"
 
 export const metadata: Metadata = {
   title: "Best Women's Sterling Silver Bracelets | Elegant Daily Wear Picks",
   description:
     "Explore premium women's sterling silver bracelets with minimal and elegant styles. Perfect for gifting and daily wear.",
+  alternates: { canonical: "https://www.silverline925.in/collection/womens-sterling-silver-bracelets" },
   keywords:
     "best womens sterling silver bracelet, womens sterling silver bracelets, sterling silver bracelets women, women bracelets, silver bracelets women, elegant women bracelets, Silverline925",
   openGraph: {
     title: "Best Women's Sterling Silver Bracelets | Elegant Daily Wear Picks",
     description:
       "Explore premium women's sterling silver bracelets with minimal and elegant styles. Perfect for gifting and daily wear.",
-    url: "https://silverline925.in/collections/womens-sterling-silver-bracelets",
+    url: "https://www.silverline925.in/collection/womens-sterling-silver-bracelets",
     siteName: "Silver Line",
     type: "article",
   },
@@ -22,6 +25,7 @@ export const metadata: Metadata = {
 export default function WomensSterlingSilverBraceletsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
+      <JsonLd data={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Collection", url: "/shop" }, { name: "Women's Sterling Silver Bracelets", url: "/collection/womens-sterling-silver-bracelets" }])} />
       <Header />
 
       {/* Hero Section */}

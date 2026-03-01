@@ -10,8 +10,8 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
-        playfair: ["Playfair Display", "serif"],
+        sans: ["var(--font-inter)", "Inter", "system-ui", "sans-serif"],
+        playfair: ["var(--font-playfair)", "Playfair Display", "serif"],
       },
       animation: {
         "fade-in": "fadeIn 0.6s ease-in-out",

@@ -1,5 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import JsonLd from "@/components/JsonLd"
+import { breadcrumbSchema } from "@/lib/seo-schemas"
 
 export const dynamic = "force-static"
 
@@ -9,13 +11,14 @@ export const metadata: Metadata = {
   title: "Return Policy | Silver Line",
   description: "Return Policy for Silver Line - Information on returns, eligibility, and process.",
   alternates: {
-    canonical: "https://silverline925.in/return-policy",
+    canonical: "https://www.silverline925.in/return-policy",
   },
 }
 
 export default function ReturnPolicyPage() {
   return (
     <div className="container mx-auto max-w-4xl px-4 py-8">
+      <JsonLd data={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Return Policy", url: "/return-policy" }])} />
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">Return & Refund Policy</CardTitle>
@@ -87,8 +90,8 @@ export default function ReturnPolicyPage() {
           <section className="space-y-2">
             <h2 className="text-base font-semibold text-foreground">Contact</h2>
             <p>
-              Need help? Email us at <a className="underline" href="mailto:support@elegantjewelry.com">support@elegantjewelry.com</a>
-              {" "}or WhatsApp/Call +91-99999-99999.
+              Need help? Email us at <a className="underline" href="mailto:silver.line9250@gmail.com">silver.line9250@gmail.com</a>
+              {" "}or WhatsApp/Call +91 9512765399.
             </p>
           </section>
         </CardContent>

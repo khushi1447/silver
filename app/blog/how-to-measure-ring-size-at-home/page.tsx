@@ -2,6 +2,8 @@ import { Metadata } from "next"
 import Image from "next/image"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
+import JsonLd from "@/components/JsonLd"
+import { articleSchema, breadcrumbSchema } from "@/lib/seo-schemas"
 import { Calendar, Clock } from "lucide-react"
 
 export const metadata: Metadata = {
@@ -10,11 +12,12 @@ export const metadata: Metadata = {
     "Don't guess your fit. Learn how to accurately measure your ring size at home using simple tools. Perfect for shopping Silverline925 sterling silver rings.",
   keywords:
     "ring size, measure ring size at home, ring sizing guide, silver ring size, Silverline925 rings, sterling silver rings",
+  alternates: { canonical: "https://www.silverline925.in/blog/how-to-measure-ring-size-at-home" },
   openGraph: {
     title: "How to Measure Ring Size at Home | Accurate Sizing Guide",
     description:
       "Don't guess your fit. Learn how to accurately measure your ring size at home using simple tools. Perfect for shopping Silverline925 sterling silver rings.",
-    url: "https://silverline925.in/blog/how-to-measure-ring-size-at-home",
+    url: "https://www.silverline925.in/blog/how-to-measure-ring-size-at-home",
     siteName: "Silver Line",
     type: "article",
     images: [
@@ -31,9 +34,18 @@ export const metadata: Metadata = {
 export default function HowToMeasureRingSizePage() {
   const publishDate = new Date().toISOString()
   const readTime = "8 min read"
+  const title = "How to Measure Ring Size at Home | Accurate Sizing Guide"
+  const description = "Learn how to accurately measure your ring size at home using simple tools. Perfect for shopping Silverline925 sterling silver rings."
+  const url = "/blog/how-to-measure-ring-size-at-home"
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <JsonLd
+        data={[
+          articleSchema({ title, description, url, image: "/images/blog7.png", datePublished: publishDate }),
+          breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Blog", url: "/blog" }, { name: title, url }]),
+        ]}
+      />
       <Header />
 
       {/* Hero Section */}

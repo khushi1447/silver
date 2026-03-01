@@ -2,6 +2,8 @@ import { Metadata } from "next"
 import Image from "next/image"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
+import JsonLd from "@/components/JsonLd"
+import { articleSchema, breadcrumbSchema } from "@/lib/seo-schemas"
 import { Calendar, Clock } from "lucide-react"
 
 export const metadata: Metadata = {
@@ -10,11 +12,12 @@ export const metadata: Metadata = {
     "Discover expert silver jewellery styling tips for modern women. Learn how to wear 925 sterling silver for work, casual outings, ethnic looks, and special occasions. Shop elegant silver jewellery online at silverline925.",
   keywords:
     "silver jewellery styling, 925 sterling silver, modern women jewellery, silver styling tips, ethnic silver jewellery, office jewellery, casual silver jewellery",
+  alternates: { canonical: "https://www.silverline925.in/blog/silver-jewellery-styling-tips-for-modern-women" },
   openGraph: {
     title: "Silver Jewellery Styling Tips for Modern Women | silverline925",
     description:
       "Discover expert silver jewellery styling tips for modern women. Learn how to wear 925 sterling silver for work, casual outings, ethnic looks, and special occasions. Shop elegant silver jewellery online at silverline925.",
-    url: "https://silverline925.in/blog/silver-jewellery-styling-tips-for-modern-women",
+    url: "https://www.silverline925.in/blog/silver-jewellery-styling-tips-for-modern-women",
     siteName: "Silver Line",
     type: "article",
     images: [
@@ -31,9 +34,18 @@ export const metadata: Metadata = {
 export default function SilverJewelleryStylingTipsPage() {
   const publishDate = new Date("2026-01-28").toISOString()
   const readTime = "8 min read"
+  const title = "Silver Jewellery Styling Tips for Modern Women"
+  const description = "Discover expert silver jewellery styling tips for modern women. Learn how to wear 925 sterling silver for work, casual outings, ethnic looks, and special occasions."
+  const url = "/blog/silver-jewellery-styling-tips-for-modern-women"
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <JsonLd
+        data={[
+          articleSchema({ title, description, url, image: "/images/blog4.png", datePublished: publishDate }),
+          breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Blog", url: "/blog" }, { name: title, url }]),
+        ]}
+      />
       <Header />
 
       {/* Hero Section */}

@@ -1,6 +1,8 @@
 import { Metadata } from "next"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
+import JsonLd from "@/components/JsonLd"
+import { articleSchema, breadcrumbSchema } from "@/lib/seo-schemas"
 import { Calendar, Clock } from "lucide-react"
 import Image from "next/image"
 
@@ -10,11 +12,12 @@ export const metadata: Metadata = {
     "Discover why pure sterling silver is a smarter investment than imitation jewelry. Learn about its durability, skin-friendly nature, long-term value, and timeless appeal with Silverline925.",
   keywords:
     "sterling silver benefits, pure silver vs imitation jewelry, sterling silver investment, silver jewelry value, hypoallergenic jewelry, Silverline925",
+  alternates: { canonical: "https://www.silverline925.in/blog/benefits-of-sterling-silver-vs-imitation-jewelry" },
   openGraph: {
     title: "Benefits of Investing in Pure Sterling Silver vs Imitation Jewelry | Silverline925",
     description:
       "Discover why pure sterling silver is a smarter investment than imitation jewelry. Learn about its durability, skin-friendly nature, long-term value, and timeless appeal with Silverline925.",
-    url: "https://silverline925.in/blog/benefits-of-sterling-silver-vs-imitation-jewelry",
+    url: "https://www.silverline925.in/blog/benefits-of-sterling-silver-vs-imitation-jewelry",
     siteName: "Silver Line",
     type: "article",
     images: [
@@ -31,9 +34,22 @@ export const metadata: Metadata = {
 export default function BenefitsOfSterlingSilverPage() {
   const publishDate = new Date().toISOString()
   const readTime = "6 min read"
+  const title = "Benefits of Investing in Pure Sterling Silver vs Imitation Jewelry"
+  const description = "Discover why pure sterling silver is a smarter investment than imitation jewelry. Learn about its durability, skin-friendly nature, long-term value, and timeless appeal."
+  const url = "/blog/benefits-of-sterling-silver-vs-imitation-jewelry"
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <JsonLd
+        data={[
+          articleSchema({ title, description, url, image: "/images/blog2.png", datePublished: publishDate }),
+          breadcrumbSchema([
+            { name: "Home", url: "/" },
+            { name: "Blog", url: "/blog" },
+            { name: title, url },
+          ]),
+        ]}
+      />
       <Header />
 
       {/* Hero Section */}

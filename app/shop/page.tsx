@@ -1,14 +1,16 @@
 import { Suspense } from "react"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
+import JsonLd from "@/components/JsonLd"
+import { breadcrumbSchema } from "@/lib/seo-schemas"
 import ShopContent from "@/components/ShopContent"
+import { SITE_URL } from "@/lib/seo"
 
 export const metadata = {
   title: "Shop - Elegant Jewelry Collection",
   description: "Browse our complete collection of handcrafted jewelry. Filter by category, price, and metal type.",
-  alternates: {
-    canonical: "https://silverline925.in/shop",
-  },
+  alternates: { canonical: `${SITE_URL}/shop` },
+  openGraph: { url: `${SITE_URL}/shop` },
 }
 
 function ShopContentSkeleton() {
@@ -30,6 +32,7 @@ function ShopContentSkeleton() {
 export default function ShopPage() {
   return (
     <div className="min-h-screen">
+      <JsonLd data={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Shop", url: "/shop" }])} />
       <Header />
       <Suspense fallback={<ShopContentSkeleton />}>
         <ShopContent />

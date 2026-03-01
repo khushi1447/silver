@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next"
+import { SITE_URL } from "@/lib/seo"
 
-const BASE_URL = "https://silverline925.in"
+const BASE_URL = SITE_URL
 
 // Define page types with their priorities and change frequencies
 interface PageConfig {
@@ -41,6 +42,20 @@ const pages: PageConfig[] = [
   // Core Information Pages
   { path: "/about", priority: 0.5, changeFrequency: "monthly" },
   { path: "/contact", priority: 0.5, changeFrequency: "monthly" },
+
+  // Policy Pages (trust signals, SEO)
+  { path: "/privacy", priority: 0.3, changeFrequency: "yearly" },
+  { path: "/terms", priority: 0.3, changeFrequency: "yearly" },
+  { path: "/shipping-policy", priority: 0.3, changeFrequency: "yearly" },
+  { path: "/refund-policy", priority: 0.3, changeFrequency: "yearly" },
+  { path: "/return-policy", priority: 0.3, changeFrequency: "yearly" },
+  { path: "/cancellation-policy", priority: 0.3, changeFrequency: "yearly" },
+
+  // Additional Blog Pages
+  { path: "/blog/everyday-silver-jewellery-essentials-every-woman-should-own", priority: 0.5, changeFrequency: "monthly" },
+  { path: "/blog/how-to-measure-ring-size-at-home", priority: 0.5, changeFrequency: "monthly" },
+  { path: "/blog/office-friendly-silver-jewellery-styling-tips", priority: 0.5, changeFrequency: "monthly" },
+  { path: "/blog/blog-sterling-silver-vs-pure-silver-difference", priority: 0.5, changeFrequency: "monthly" },
 
   // REMOVED: Low-value pages that waste crawl budget
   // - /cart (user-specific, no SEO value)

@@ -1,19 +1,22 @@
 import { Metadata } from "next"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
+import JsonLd from "@/components/JsonLd"
+import { breadcrumbSchema } from "@/lib/seo-schemas"
 import CollectionProducts from "@/components/CollectionProducts"
 
 export const metadata: Metadata = {
   title: "Buy Best Silver Pendants for Women in Ahmedabad At Best Price",
   description:
     "Find elegant silver pendants for women in Ahmedabad with fast delivery and handcrafted designs. Explore the Latest styles at Silverline925.",
+  alternates: { canonical: "https://www.silverline925.in/collection/silver-pendants-women-ahmedabad" },
   keywords:
     "silver pendants for women, Ahmedabad, silver pendants Ahmedabad, women's pendants, sterling silver pendants, handcrafted pendants, jewelry Ahmedabad",
   openGraph: {
     title: "Buy Best Silver Pendants for Women in Ahmedabad At Best Price",
     description:
       "Find elegant silver pendants for women in Ahmedabad with fast delivery and handcrafted designs. Explore the Latest styles at Silverline925.",
-    url: "https://silverline925.in/collections/silver-pendants-women-ahmedabad",
+    url: "https://www.silverline925.in/collection/silver-pendants-women-ahmedabad",
     siteName: "Silver Line",
     type: "article",
   },
@@ -22,6 +25,7 @@ export const metadata: Metadata = {
 export default function SilverPendantsAhmedabadPage() {
   return (
     <div className="min-h-screen bg-gray-50">
+      <JsonLd data={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Collection", url: "/shop" }, { name: "Silver Pendants for Women Ahmedabad", url: "/collection/silver-pendants-women-ahmedabad" }])} />
       <Header />
 
       {/* Hero Section */}

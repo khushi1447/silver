@@ -1,5 +1,7 @@
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
+import JsonLd from "@/components/JsonLd"
+import { breadcrumbSchema } from "@/lib/seo-schemas"
 import { RefreshCw, XCircle, RotateCcw, PackageCheck, AlertTriangle, Truck, Clock, CheckCircle, Mail } from "lucide-react"
 import type { Metadata } from "next"
 
@@ -7,13 +9,14 @@ export const metadata: Metadata = {
   title: "Refund Policy | Silver Line",
   description: "Refund and Cancellation Policy for Silver Line - Learn about our refund process and conditions.",
   alternates: {
-    canonical: "https://silverline925.in/refund-policy",
+    canonical: "https://www.silverline925.in/refund-policy",
   },
 }
 
 export default function RefundPolicyPage() {
   return (
     <div className="min-h-screen bg-gray-50">
+      <JsonLd data={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Refund Policy", url: "/refund-policy" }])} />
       <Header />
       
       {/* Hero Section */}

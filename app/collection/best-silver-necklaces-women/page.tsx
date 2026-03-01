@@ -1,6 +1,8 @@
 import { Metadata } from "next"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
+import JsonLd from "@/components/JsonLd"
+import { breadcrumbSchema } from "@/lib/seo-schemas"
 import CollectionProducts from "@/components/CollectionProducts"
 
 export const metadata: Metadata = {
@@ -9,11 +11,12 @@ export const metadata: Metadata = {
     "Explore the best silver necklaces for women with premium designs and everyday wear styles. Find perfect pieces for any occasion at Silverline925",
   keywords:
     "best silver necklace for womens, silver necklaces for women, sterling silver necklaces, women necklaces, trendy silver necklaces, everyday silver necklaces, Silverline925",
+  alternates: { canonical: "https://www.silverline925.in/collection/best-silver-necklaces-women" },
   openGraph: {
     title: "Buy Best Silver Necklaces for Women - Trendy Styles at Silverline925",
     description:
       "Explore the best silver necklaces for women with premium designs and everyday wear styles. Find perfect pieces for any occasion at Silverline925",
-    url: "https://silverline925.in/collections/best-silver-necklaces-women",
+    url: "https://www.silverline925.in/collection/best-silver-necklaces-women",
     siteName: "Silver Line",
     type: "article",
   },
@@ -22,6 +25,7 @@ export const metadata: Metadata = {
 export default function BestSilverNecklacesWomenPage() {
   return (
     <div className="min-h-screen bg-gray-50">
+      <JsonLd data={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Collection", url: "/shop" }, { name: "Best Silver Necklaces for Women", url: "/collection/best-silver-necklaces-women" }])} />
       <Header />
 
       {/* Hero Section */}

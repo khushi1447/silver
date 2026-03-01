@@ -1,19 +1,22 @@
 import { Metadata } from "next"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
+import JsonLd from "@/components/JsonLd"
+import { breadcrumbSchema } from "@/lib/seo-schemas"
 import CollectionProducts from "@/components/CollectionProducts"
 
 export const metadata: Metadata = {
   title: "Silver Infinity Rings Price and Latest Designs Online",
   description:
     "Check the latest silver infinity ring price range with premium sterling silver designs. Perfect symbol of love and eternity for gifting and daily wear at Silverline925.",
+  alternates: { canonical: "https://www.silverline925.in/collection/silver-infinity-rings" },
   keywords:
     "silver infinity ring price, silver infinity rings, infinity rings price, sterling silver infinity rings, infinity ring designs, Silverline925",
   openGraph: {
     title: "Silver Infinity Rings Price and Latest Designs Online",
     description:
       "Check the latest silver infinity ring price range with premium sterling silver designs. Perfect symbol of love and eternity for gifting and daily wear at Silverline925.",
-    url: "https://silverline925.in/collections/silver-infinity-rings",
+    url: "https://www.silverline925.in/collection/silver-infinity-rings",
     siteName: "Silver Line",
     type: "article",
   },
@@ -22,6 +25,7 @@ export const metadata: Metadata = {
 export default function SilverInfinityRingsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
+      <JsonLd data={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Collection", url: "/shop" }, { name: "Silver Infinity Rings", url: "/collection/silver-infinity-rings" }])} />
       <Header />
 
       {/* Hero Section */}

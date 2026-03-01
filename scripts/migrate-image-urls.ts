@@ -17,7 +17,7 @@ async function migrateImageUrls() {
     console.log('Starting image URL migration...')
     
     // Get the base URL from environment
-    const baseUrl = process.env.UPLOAD_BASE_URL || 'https://silverline925.in/uploads/products'
+    const baseUrl = process.env.UPLOAD_BASE_URL || 'https://www.silverline925.in/uploads/products'
     
     if (!baseUrl) {
       throw new Error('UPLOAD_BASE_URL environment variable is required')

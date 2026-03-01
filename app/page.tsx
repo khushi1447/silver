@@ -1,5 +1,6 @@
 'use client'
 
+import Image from "next/image"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
 import ProductCard from "@/components/ProductCard"
@@ -10,47 +11,17 @@ import { useRouter } from "next/navigation"
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi } from "@/components/ui/carousel"
 import { useState, useEffect } from "react"
 
-const metadata = {
-  title: "Silver Line - Handcrafted Jewelry for Every Occasion",
-  description: "Discover Silver Line's exquisite collection of handcrafted jewelry. Shop rings, necklaces, earrings, and more. Free shipping, premium quality, and lifetime warranty.",
-  keywords: "jewelry, silver, rings, necklaces, earrings, handcrafted, shop, Silver Line, buy jewelry online",
-  openGraph: {
-    title: "Silver Line - Handcrafted Jewelry for Every Occasion",
-    description: "Discover Silver Line's exquisite collection of handcrafted jewelry. Shop rings, necklaces, earrings, and more.",
-    url: "https://silverline925.in/",
-    siteName: "Silver Line",
-    images: [
-      {
-        url: "/placeholder.jpg",
-        width: 1200,
-        height: 630,
-        alt: "Silver Line Jewelry Banner",
-      },
-    ],
-    locale: "en_US",
-    type: "website",
-  },
-  alternates: {
-    canonical: "/",
-  },
-};
-
 export default function Home() {
   const router = useRouter()
-  const { products, loading, error } = useProducts({
-    page: 1,
-    limit: 4,
-    sortBy: 'createdAt',
-    sortOrder: 'desc'
-  });
-
-  // Fetch 8 most recent products for banner slider
-  const { products: bannerProducts, loading: bannerLoading } = useProducts({
+  // Single fetch: 8 products for both banner and featured (first 4)
+  const { products: allProducts, loading, error } = useProducts({
     page: 1,
     limit: 8,
     sortBy: 'createdAt',
     sortOrder: 'desc'
   });
+  const products = allProducts.slice(0, 4);
+  const bannerProducts = allProducts;
 
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [emblaApi, setEmblaApi] = useState<CarouselApi | undefined>(undefined);
@@ -121,7 +92,7 @@ export default function Home() {
       {/* Banner Slider */}
       <section className="w-full mb-4 sm:mb-6">
         <div className="relative w-full">
-          {bannerLoading ? (
+          {loading ? (
             <div className="aspect-[4/3] sm:aspect-[3/2] lg:aspect-[32/9] flex items-center justify-center bg-gray-100" style={{ minHeight: '250px' }}>
               <div className="text-center px-4">
                 <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 md:h-12 md:w-12 border-b-2 border-purple-600 mx-auto mb-3 sm:mb-4"></div>
@@ -137,11 +108,13 @@ export default function Home() {
                       className="relative w-full h-full cursor-pointer group touch-pan-y"
                       onClick={() => router.push(`/product/${img.productId}`)}
                     >
-                      <img
+                      <Image
                         src={img.src}
                         alt={img.alt}
-                        className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
-                        style={{ minHeight: '250px' }}
+                        fill
+                        sizes="100vw"
+                        priority={i === 0}
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                       <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 group-active:bg-opacity-20 transition-all duration-300 flex items-center justify-center">
                         <div className="opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-300 bg-white bg-opacity-90 px-2.5 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-2 rounded-full">
@@ -214,10 +187,12 @@ export default function Home() {
                             onClick={() => router.push(`/shop?category=${category.id}`)}
                           >
                             <div className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 light-shadow hover:light-shadow-lg transition-all duration-300 group-hover:scale-105 mb-2">
-                              <img
+                              <Image
                                 src={category.latestProductImage}
                                 alt={category.name}
-                                className="absolute inset-0 w-full h-full object-cover"
+                                fill
+                                sizes="140px"
+                                className="object-cover"
                               />
                             </div>
                             <h3 className="text-gray-800 font-semibold text-xs text-center group-hover:text-purple-600 transition-colors duration-300">
@@ -235,10 +210,12 @@ export default function Home() {
                             onClick={() => router.push(`/shop?category=${category.id}`)}
                           >
                             <div className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 light-shadow hover:light-shadow-lg transition-all duration-300 group-hover:scale-105 mb-2">
-                              <img
+                              <Image
                                 src={category.latestProductImage}
                                 alt={category.name}
-                                className="absolute inset-0 w-full h-full object-cover"
+                                fill
+                                sizes="140px"
+                                className="object-cover"
                               />
                             </div>
                             <h3 className="text-gray-800 font-semibold text-xs text-center group-hover:text-purple-600 transition-colors duration-300">
@@ -273,10 +250,12 @@ export default function Home() {
                               onClick={() => router.push(`/shop?category=${category.id}`)}
                             >
                               <div className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 light-shadow hover:light-shadow-lg transition-all duration-300 group-hover:scale-105 mb-2 sm:mb-3">
-                                <img
+                                <Image
                                   src={category.latestProductImage}
                                   alt={category.name}
-                                  className="absolute inset-0 w-full h-full object-cover"
+                                  fill
+                                  sizes="(max-width: 768px) 33vw, 20vw"
+                                  className="object-cover"
                                 />
                               </div>
                               <h3 className="text-gray-800 font-semibold text-xs sm:text-sm text-center group-hover:text-purple-600 transition-colors duration-300">

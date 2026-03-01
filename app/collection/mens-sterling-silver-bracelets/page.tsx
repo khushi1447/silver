@@ -1,19 +1,22 @@
 import { Metadata } from "next"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
+import JsonLd from "@/components/JsonLd"
+import { breadcrumbSchema } from "@/lib/seo-schemas"
 import CollectionProducts from "@/components/CollectionProducts"
 
 export const metadata: Metadata = {
   title: "Buy Best Mens Sterling Silver Bracelets - Explore Stylish Designs",
   description:
     "Shop the best men's sterling silver bracelets featuring strong, stylish handcrafted designs. Perfect for everyday use at Best Price at Silverline925.",
+  alternates: { canonical: "https://www.silverline925.in/collection/mens-sterling-silver-bracelets" },
   keywords:
     "best men's sterling silver bracelet, mens sterling silver bracelets, sterling silver bracelets men, men bracelets, silver bracelets men, stylish men bracelets, Silverline925",
   openGraph: {
     title: "Buy Best Mens Sterling Silver Bracelets - Explore Stylish Designs",
     description:
       "Shop the best men's sterling silver bracelets featuring strong, stylish handcrafted designs. Perfect for everyday use at Best Price at Silverline925.",
-    url: "https://silverline925.in/collections/mens-sterling-silver-bracelets",
+    url: "https://www.silverline925.in/collection/mens-sterling-silver-bracelets",
     siteName: "Silver Line",
     type: "article",
   },
@@ -22,6 +25,7 @@ export const metadata: Metadata = {
 export default function MensSterlingSilverBraceletsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
+      <JsonLd data={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Collection", url: "/shop" }, { name: "Men's Sterling Silver Bracelets", url: "/collection/mens-sterling-silver-bracelets" }])} />
       <Header />
 
       {/* Hero Section */}

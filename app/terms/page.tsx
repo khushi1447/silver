@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: "Terms & Conditions | Silver Line",
   description: "Terms and Conditions for Silver Line - Please read carefully before using our services.",
   alternates: {
-    canonical: "https://silverline925.in/terms",
+    canonical: "https://www.silverline925.in/terms",
   },
 }
 

@@ -1,8 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db";
 import { authOptions } from "@/lib/auth";
 import { z } from "zod";
+
+async function fetchCategoriesWithProducts() {
+  return prisma.category.findMany({
+    include: {
+      _count: { select: { products: true } },
+      products: {
+        include: {
+          images: { where: { isPrimary: true }, take: 1 },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 1,
+      },
+    },
+    orderBy: { name: "asc" },
+  });
+}
+
+const getCachedCategoriesWithProducts = unstable_cache(
+  fetchCategoriesWithProducts,
+  ["categories-with-products"],
+  { revalidate: 60 }
+);
 
 // Validation schema for categories
 const categorySchema = z.object({
@@ -17,26 +40,23 @@ export async function GET(request: NextRequest) {
     const includeProducts = searchParams.get("includeProducts") === "true";
     const includeCounts = searchParams.get("includeCounts") === "true";
     
-    const categories = await prisma.category.findMany({
-      include: {
-        _count: includeCounts ? {
-          select: { products: true },
-        } : undefined,
-        ...(includeProducts && {
-          products: {
-            include: {
-              images: {
-                where: { isPrimary: true },
+    const categories = includeProducts && includeCounts
+      ? await getCachedCategoriesWithProducts()
+      : await prisma.category.findMany({
+          include: {
+            _count: includeCounts ? { select: { products: true } } : undefined,
+            ...(includeProducts && {
+              products: {
+                include: {
+                  images: { where: { isPrimary: true }, take: 1 },
+                },
+                orderBy: { createdAt: "desc" },
                 take: 1,
               },
-            },
-            orderBy: { createdAt: "desc" },
-            take: 1, // Get only the latest product for category card
+            }),
           },
-        }),
-      },
-      orderBy: { name: "asc" },
-    });
+          orderBy: { name: "asc" },
+        });
     
     const transformedCategories = categories.map((category: any) => ({
       id: category.id,

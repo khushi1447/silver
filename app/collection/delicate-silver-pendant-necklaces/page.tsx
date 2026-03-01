@@ -1,6 +1,8 @@
 import { Metadata } from "next"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
+import JsonLd from "@/components/JsonLd"
+import { breadcrumbSchema } from "@/lib/seo-schemas"
 import CollectionProducts from "@/components/CollectionProducts"
 
 export const metadata: Metadata = {
@@ -9,11 +11,12 @@ export const metadata: Metadata = {
     "Shop Premium delicate silver pendant necklaces crafted for minimal everyday elegance. Explore the Latest styles at Silverline925.",
   keywords:
     "delicate silver pendant necklaces, silver pendants for women, delicate pendants, sterling silver pendants, minimalist jewelry, everyday silver jewelry, Silverline925",
+  alternates: { canonical: "https://www.silverline925.in/collection/delicate-silver-pendant-necklaces" },
   openGraph: {
     title: "Buy Delicate Silver Pendant Necklaces for Women at Best Price",
     description:
       "Shop Premium delicate silver pendant necklaces crafted for minimal everyday elegance. Explore the Latest styles at Silverline925.",
-    url: "https://silverline925.in/collection/delicate-silver-pendant-necklaces",
+    url: "https://www.silverline925.in/collection/delicate-silver-pendant-necklaces",
     siteName: "Silver Line",
     type: "article",
   },
@@ -22,6 +25,7 @@ export const metadata: Metadata = {
 export default function DelicateSilverPendantsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
+      <JsonLd data={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Collection", url: "/shop" }, { name: "Delicate Silver Pendant Necklaces", url: "/collection/delicate-silver-pendant-necklaces" }])} />
       <Header />
 
       {/* Hero Section */}

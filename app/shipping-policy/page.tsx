@@ -1,5 +1,7 @@
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
+import JsonLd from "@/components/JsonLd"
+import { breadcrumbSchema } from "@/lib/seo-schemas"
 import { Truck, MapPin, Clock, RefreshCcw, ShieldCheck, Package, AlertTriangle, Globe2, Undo2 } from "lucide-react"
 import type { Metadata } from "next"
 
@@ -7,13 +9,14 @@ export const metadata: Metadata = {
   title: "Shipping & Delivery Policy | Silver Line",
   description: "Detailed Shipping & Delivery Policy for Silver Line: dispatch timelines, tracking, courier partners, ODA serviceability, delivery attempts, damage handling, delays, international shipping and support information.",
   alternates: {
-    canonical: "https://silverline925.in/shipping-policy",
+    canonical: "https://www.silverline925.in/shipping-policy",
   },
 }
 
 export default function ShippingPolicyPage() {
   return (
     <div className="min-h-screen bg-gray-50">
+      <JsonLd data={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Shipping Policy", url: "/shipping-policy" }])} />
       <Header />
 
       {/* Hero Section */}

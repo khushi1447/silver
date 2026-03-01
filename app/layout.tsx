@@ -1,64 +1,86 @@
 import type React from "react"
 import type { Metadata } from "next"
 import Script from "next/script"
+import { Inter, Playfair_Display } from "next/font/google"
 
 import { Analytics } from "@vercel/analytics/next"
 
+import {
+  SITE_URL,
+  SITE_NAME,
+  SITE_DESCRIPTION,
+  SITE_KEYWORDS,
+  FACEBOOK_URL,
+  INSTAGRAM_URL,
+  CONTACT_EMAIL,
+  CONTACT_PHONE,
+  GOOGLE_ANALYTICS_ID,
+  GOOGLE_SITE_VERIFICATION,
+} from "@/lib/seo"
+
 import "./globals.css"
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+})
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-playfair",
+  display: "swap",
+})
 import WhatsAppFloat from "@/components/WhatsAppFloat"
 import Providers from "@/components/Providers"
 import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://silverline925.in"),
-
-  title: "SILVER LINE - The Endless Shine of Silver",
-  description:
-    "Discover our exquisite collection of handcrafted silver jewelry. Premium silver pieces for every occasion. The endless shine of silver.",
-
-  keywords:
-    "silver jewelry, silver line, handcrafted jewelry, rings, necklaces, earrings, bracelets, silver collection",
-
-  authors: [{ name: "SILVER LINE" }],
-
-  // ✅ CANONICAL TAG (HOME PAGE)
-  alternates: {
-    canonical: "/", // → https://silverline925.in/
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: `${SITE_NAME} - The Endless Shine of Silver`,
+    template: `%s | ${SITE_NAME}`,
   },
-
+  description: SITE_DESCRIPTION,
+  keywords: SITE_KEYWORDS,
+  authors: [{ name: SITE_NAME, url: SITE_URL }],
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
-    title: "SILVER LINE - The Endless Shine of Silver",
-    description: "Discover our exquisite collection of handcrafted silver jewelry",
-    url: "https://silverline925.in/",
-    siteName: "Silver Line",
     type: "website",
-    locale: "en_US",
+    locale: "en_IN",
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    title: `${SITE_NAME} - The Endless Shine of Silver`,
+    description: SITE_DESCRIPTION,
     images: [
       {
-        url: "/images/logo.png",
+        url: `${SITE_URL}/images/logo.png`,
         width: 1200,
         height: 630,
-        alt: "SILVER LINE - The Endless Shine of Silver",
+        alt: `${SITE_NAME} - Handcrafted Silver Jewelry`,
       },
     ],
   },
-
   twitter: {
     card: "summary_large_image",
-    title: "SILVER LINE - The Endless Shine of Silver",
-    description: "Discover our exquisite collection of handcrafted silver jewelry",
+    title: `${SITE_NAME} - The Endless Shine of Silver`,
+    description: SITE_DESCRIPTION,
   },
-
   robots: {
     index: true,
     follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+    },
   },
-
-  // ✅ Google Search Console Verification
   verification: {
-    google: "GNfOsLKh6Bcx3vSJb6Fmn1bWDFfHCcHfCxne4mQW7Xs",
+    google: GOOGLE_SITE_VERIFICATION,
   },
-
   icons: {
     icon: [
       { url: "/favicon.ico" },
@@ -67,8 +89,12 @@ export const metadata: Metadata = {
     shortcut: "/favicon.ico",
     apple: "/images/logo.png",
   },
-
-  generator: "v0.dev",
+  category: "jewelry",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
 }
 
 export default function RootLayout({
@@ -77,19 +103,45 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="scroll-smooth">
+    <html lang="en" className={`scroll-smooth ${inter.variable} ${playfair.variable}`}>
       <head>
-        {/* Google Fonts */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"
-          rel="stylesheet"
+        {/* JSON-LD: Organization + WebSite schema for SEO */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify([
+              {
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                name: SITE_NAME,
+                url: SITE_URL,
+                logo: `${SITE_URL}/images/logo.png`,
+                description: SITE_DESCRIPTION,
+                contactPoint: {
+                  "@type": "ContactPoint",
+                  telephone: CONTACT_PHONE.replace(/\s/g, ""),
+                  email: CONTACT_EMAIL,
+                  contactType: "customer service",
+                  areaServed: "IN",
+                  availableLanguage: "English, Hindi",
+                },
+                sameAs: [FACEBOOK_URL, INSTAGRAM_URL],
+              },
+              {
+                "@context": "https://schema.org",
+                "@type": "WebSite",
+                name: SITE_NAME,
+                url: SITE_URL,
+                description: SITE_DESCRIPTION,
+                publisher: { "@id": `${SITE_URL}/#organization` },
+                inLanguage: "en-IN",
+              },
+            ]),
+          }}
         />
-
-        {/* Google Analytics */}
+        {/* Google tag (gtag.js) */}
         <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-9SWK9B1R84"
+          src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ANALYTICS_ID}`}
           strategy="afterInteractive"
         />
         <Script id="google-analytics" strategy="afterInteractive">
@@ -97,18 +149,12 @@ export default function RootLayout({
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', 'G-9SWK9B1R84');
+            gtag('config', '${GOOGLE_ANALYTICS_ID}');
           `}
         </Script>
       </head>
 
-      <body
-        className="font-sans antialiased bg-gradient-to-br from-blue-50 via-white to-purple-50 min-h-screen"
-        style={{
-          fontFamily:
-            'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-        }}
-      >
+      <body className="font-sans antialiased bg-gradient-to-br from-blue-50 via-white to-purple-50 min-h-screen">
         <Providers>
           {children}
           <WhatsAppFloat />

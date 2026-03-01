@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: "Privacy Policy | Silver Line",
   description: "Privacy Policy for Silver Line - Learn how we collect, use, and protect your personal information.",
   alternates: {
-    canonical: "https://silverline925.in/privacy",
+    canonical: "https://www.silverline925.in/privacy",
   },
 }
 

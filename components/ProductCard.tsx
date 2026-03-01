@@ -3,7 +3,7 @@
 import type React from "react";
 
 import Link from "next/link";
-import { ShoppingCart, Heart } from "lucide-react";
+import Image from "next/image";
 import { type ApiProduct } from "@/types/api";
 import AddToCartButton from "./AddToCartButton";
 import WishlistButton from "./WishlistButton";
@@ -18,10 +18,12 @@ export default function ProductCard({ product }: ProductCardProps) {
     <div className="group bg-white rounded-2xl light-shadow hover:light-shadow-lg transition-all duration-500 overflow-hidden animate-fade-in border border-gray-100 hover:border-purple-200">
       <Link href={`/product/${product.id}`}>
         <div className="relative overflow-hidden bg-gray-200 aspect-square">
-          <img
+          <Image
             src={product.images?.[0]?.url || "/placeholder.svg"}
             alt={product.name}
-            className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            className="object-cover group-hover:scale-110 transition-transform duration-500"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">

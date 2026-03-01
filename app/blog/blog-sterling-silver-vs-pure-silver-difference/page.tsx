@@ -1,6 +1,8 @@
 import { Metadata } from "next"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
+import JsonLd from "@/components/JsonLd"
+import { articleSchema, breadcrumbSchema } from "@/lib/seo-schemas"
 import { Calendar, Clock } from "lucide-react"
 import Image from "next/image"
 
@@ -9,13 +11,13 @@ export const metadata: Metadata = {
   description:
     "Learn the difference between sterling silver and pure silver including durability, composition, maintenance, and which is better for jewellery. Complete buying guide.",
   alternates: {
-    canonical: "/blog/blog-sterling-silver-vs-pure-silver-difference",
+    canonical: "https://www.silverline925.in/blog/blog-sterling-silver-vs-pure-silver-difference",
   },
   openGraph: {
     title: "Sterling Silver vs Pure Silver: Key Differences, Benefits and Buying Guide | SilverLine925",
     description:
       "Learn the difference between sterling silver and pure silver including durability, composition, maintenance, and which is better for jewellery. Complete buying guide.",
-    url: "https://silverline925.in/blog/blog-sterling-silver-vs-pure-silver-difference",
+    url: "https://www.silverline925.in/blog/blog-sterling-silver-vs-pure-silver-difference",
     siteName: "Silver Line",
     type: "article",
     images: [
@@ -32,9 +34,18 @@ export const metadata: Metadata = {
 export default function BlogSterlingSilverVsPureSilver() {
   const publishDate = "2024-05-20T00:00:00Z"
   const readTime = "7 min read"
+  const title = "Sterling Silver vs Pure Silver: Key Differences, Benefits and Buying Guide"
+  const description = "Learn the difference between sterling silver and pure silver including durability, composition, maintenance, and which is better for jewellery. Complete buying guide."
+  const url = "/blog/blog-sterling-silver-vs-pure-silver-difference"
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <JsonLd
+        data={[
+          articleSchema({ title, description, url, image: "/blog-assets/sterling-silver-vs-pure-silver.jpg", datePublished: publishDate }),
+          breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Blog", url: "/blog" }, { name: title, url }]),
+        ]}
+      />
       <Header />
 
       {/* Hero Section */}
