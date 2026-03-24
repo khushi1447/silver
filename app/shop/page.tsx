@@ -7,10 +7,22 @@ import ShopContent from "@/components/ShopContent"
 import { SITE_URL } from "@/lib/seo"
 
 export const metadata = {
-  title: "Shop - Elegant Jewelry Collection",
-  description: "Browse our complete collection of handcrafted jewelry. Filter by category, price, and metal type.",
+  title: "Shop 925 Sterling Silver Jewellery Online | Silverline925",
+  description: "Browse Silverline925's complete collection of handcrafted 925 sterling silver rings, necklaces, bracelets, chains, and pendants. BIS hallmarked, hypoallergenic, free shipping across India.",
+  keywords: "925 sterling silver jewellery online, buy silver jewellery India, silver rings, silver necklaces, silver bracelets, silver chains, silver pendants, Silverline925 shop",
   alternates: { canonical: `${SITE_URL}/shop` },
-  openGraph: { url: `${SITE_URL}/shop` },
+  openGraph: {
+    title: "Shop 925 Sterling Silver Jewellery Online | Silverline925",
+    description: "Browse Silverline925's complete collection of handcrafted 925 sterling silver rings, necklaces, bracelets, chains, and pendants. BIS hallmarked, hypoallergenic, free shipping across India.",
+    url: `${SITE_URL}/shop`,
+    siteName: "Silverline925",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Shop 925 Sterling Silver Jewellery Online | Silverline925",
+    description: "Browse Silverline925's complete collection of handcrafted 925 sterling silver rings, necklaces, bracelets, chains, and pendants.",
+  },
 }
 
 function ShopContentSkeleton() {

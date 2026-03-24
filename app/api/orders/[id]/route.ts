@@ -1,41 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { requireAdmin } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
-import { cookies } from "next/headers";
-import jwt from "jsonwebtoken";
 
 // Validation schema for updating order status
 const updateOrderSchema = z.object({
   status: z.enum(["PENDING", "CONFIRMED", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED", "REFUNDED"]),
   notes: z.string().optional(),
 });
-
-// Helper function to check admin authentication
-async function checkAdminAuth() {
-  // First try NextAuth session
-  const session = await getServerSession(authOptions);
-  if (session?.user?.isAdmin) {
-    return true;
-  }
-
-  // Fallback to JWT admin token
-  try {
-    const cookieStore = await cookies();
-    const adminToken = cookieStore.get("admin-token")?.value;
-    
-    if (adminToken) {
-      const jwtSecret = process.env.JWT_SECRET || "your-secret-key";
-      const decoded = jwt.verify(adminToken, jwtSecret) as any;
-      return decoded.role === "admin";
-    }
-  } catch (error) {
-    console.error("JWT verification error:", error);
-  }
-
-  return false;
-}
 
 export async function GET(
   request: NextRequest,
@@ -93,14 +67,11 @@ export async function GET(
     }
     
     // Check if user is authorized to view this order
-    const isAdmin = session?.user?.isAdmin || false;
     const isOwner = session?.user?.id && order.userId === parseInt(session.user.id);
-    
-    if (!isAdmin && !isOwner) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+    if (!isOwner) {
+      // Not the owner — require admin
+      const { error } = await requireAdmin(request);
+      if (error) return error;
     }
     
     // Transform order for response
@@ -190,25 +161,19 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const isAdmin = await checkAdminAuth();
-    
-    if (!isAdmin) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-    
+    const { error } = await requireAdmin(request);
+    if (error) return error;
+
     const resolvedParams = await params;
     const orderId = parseInt(resolvedParams.id);
-    
+
     if (isNaN(orderId)) {
       return NextResponse.json(
         { error: "Invalid order ID" },
         { status: 400 }
       );
     }
-    
+
     const body = await request.json();
     const validatedData = updateOrderSchema.parse(body);
     
@@ -281,25 +246,19 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const isAdmin = await checkAdminAuth();
-    
-    if (!isAdmin) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-    
+    const { error } = await requireAdmin(request);
+    if (error) return error;
+
     const resolvedParams = await params;
     const orderId = parseInt(resolvedParams.id);
-    
+
     if (isNaN(orderId)) {
       return NextResponse.json(
         { error: "Invalid order ID" },
         { status: 400 }
       );
     }
-    
+
     // Check if order exists
     const existingOrder = await prisma.order.findUnique({
       where: { id: orderId },

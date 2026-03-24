@@ -17,8 +17,13 @@ export const metadata: Metadata = {
     description:
       "Shop Premium delicate silver pendant necklaces crafted for minimal everyday elegance. Explore the Latest styles at Silverline925.",
     url: "https://www.silverline925.in/collection/delicate-silver-pendant-necklaces",
-    siteName: "Silver Line",
+    siteName: "Silverline925",
     type: "article",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Buy Delicate Silver Pendant Necklaces for Women at Best Price",
+    description: "Shop premium delicate silver pendant necklaces crafted for minimal everyday elegance. Explore the latest styles at Silverline925.",
   },
 }
 

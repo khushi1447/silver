@@ -1,8 +1,6 @@
 import type { MetadataRoute } from "next"
 import { SITE_URL } from "@/lib/seo"
 
-const BASE_URL = SITE_URL
-
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
@@ -13,42 +11,40 @@ export default function robots(): MetadataRoute.Robots {
           "/about",
           "/shop",
           "/contact",
-          "/blog",
+          "/blog/",
+          "/product/",
           "/collection/",
-          "/assets/",
-          "/uploads/",
+          "/privacy",
+          "/terms",
+          "/shipping-policy",
+          "/refund-policy",
+          "/return-policy",
+          "/cancellation-policy",
           "/images/",
-          "/css/",
-          "/js/",
           "/favicon.ico",
         ],
         disallow: [
           "/admin",
-          "/administrator",
-          "/admin-auth",
           "/api/admin",
           "/login",
           "/signup",
-          "/register",
-          "/account",
-          "/my-account",
-          "/customer",
-          "/dashboard",
+          "/profile",
           "/orders",
+          "/wishlist",
           "/cart",
           "/checkout",
-          "/order",
-          "/payment",
-          "/search",
-          "/cgi-bin",
-          "/tmp",
-          "/cache",
           "/_next",
           "/api",
-          "/test",
         ],
       },
+      // Allow Googlebot full crawl of products and collections
+      {
+        userAgent: "Googlebot",
+        allow: ["/product/", "/collection/", "/blog/", "/shop"],
+        disallow: ["/admin", "/api/admin", "/api"],
+      },
     ],
-    sitemap: `${BASE_URL}/sitemap.xml`,
+    sitemap: `${SITE_URL}/sitemap.xml`,
+    host: SITE_URL,
   }
 }

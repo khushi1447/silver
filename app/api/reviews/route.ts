@@ -4,117 +4,124 @@ import bcrypt from "bcryptjs";
 import { randomBytes } from "crypto";
 import { prisma } from "@/lib/db";
 import { authOptions } from "@/lib/auth";
+import { getAdminPayload } from "@/lib/admin-auth";
 import { z } from "zod";
 
-// Validation schema for creating reviews
 const createReviewSchema = z.object({
   productId: z.number().int().positive("Product ID is required"),
-  rating: z.number().int().min(1, "Rating must be at least 1").max(5, "Rating must be at most 5"),
-  title: z.string().min(1, "Title is required").max(200, "Title too long"),
-  comment: z.string().min(1, "Comment is required").max(1000, "Comment too long"),
-  // For non-logged in users
+  rating: z.number().int().min(1).max(5),
+  title: z.string().min(1).max(200),
+  comment: z.string().min(1).max(1000),
   firstName: z.string().optional(),
   lastName: z.string().optional(),
   email: z.string().email().optional(),
 });
 
+/** GET — admin: all reviews with filters; public: approved reviews for a product */
+export async function GET(request: NextRequest) {
+  try {
+    const admin = await getAdminPayload();
+    const { searchParams } = new URL(request.url);
+
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
+    const limit = Math.min(100, parseInt(searchParams.get("limit") || "20"));
+    const offset = (page - 1) * limit;
+    const productId = searchParams.get("productId");
+    const status = searchParams.get("status"); // "pending" | "approved" | "all"
+    const rating = searchParams.get("rating");
+    const search = searchParams.get("search") || "";
+
+    const where: any = {};
+
+    if (admin) {
+      // Admin can see all reviews with filters
+      if (status === "pending") where.isApproved = false;
+      else if (status === "approved") where.isApproved = true;
+      // "all" → no filter
+    } else {
+      // Public only sees approved reviews
+      where.isApproved = true;
+    }
+
+    if (productId) where.productId = parseInt(productId);
+    if (rating) where.rating = parseInt(rating);
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: "insensitive" } },
+        { comment: { contains: search, mode: "insensitive" } },
+      ];
+    }
+
+    const [reviews, total] = await Promise.all([
+      prisma.review.findMany({
+        where,
+        skip: offset,
+        take: limit,
+        orderBy: { createdAt: "desc" },
+        include: {
+          user: { select: { id: true, firstName: true, lastName: true, email: true } },
+          product: { select: { id: true, name: true } },
+        },
+      }),
+      prisma.review.count({ where }),
+    ]);
+
+    return NextResponse.json({
+      reviews: reviews.map((r) => ({
+        id: r.id,
+        rating: r.rating,
+        title: r.title,
+        comment: r.comment,
+        isVerified: r.isVerified,
+        isApproved: r.isApproved,
+        helpfulCount: r.helpfulCount,
+        adminReply: r.adminReply,
+        user: {
+          id: r.user.id,
+          name: `${r.user.firstName} ${r.user.lastName}`,
+          email: admin ? r.user.email : undefined,
+        },
+        product: { id: r.product.id, name: r.product.name },
+        createdAt: r.createdAt,
+        updatedAt: r.updatedAt,
+      })),
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    });
+  } catch (err) {
+    console.error("Reviews GET error:", err);
+    return NextResponse.json({ error: "Failed to fetch reviews" }, { status: 500 });
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     const body = await request.json();
-    const validatedData = createReviewSchema.parse(body);
-    
-    const { productId, rating, title, comment, firstName, lastName, email } = validatedData;
+    const data = createReviewSchema.parse(body);
+    const { productId, rating, title, comment, firstName, lastName, email } = data;
 
-    // Check if product exists
-    const product = await prisma.product.findUnique({
-      where: { id: productId },
-    });
-    
-    if (!product) {
-      return NextResponse.json(
-        { error: "Product not found" },
-        { status: 404 }
-      );
-    }
-    
+    const product = await prisma.product.findUnique({ where: { id: productId } });
+    if (!product) return NextResponse.json({ error: "Product not found" }, { status: 404 });
+
     if (session?.user?.id) {
-      // Logged in user
       const userId = parseInt(session.user.id);
 
-      // Check if user already reviewed this product
-    const existingReview = await prisma.review.findUnique({
-      where: {
-        userId_productId: {
-          userId,
-            productId,
-          },
-      },
-    });
-    
-    if (existingReview) {
-      return NextResponse.json(
-        { error: "You have already reviewed this product" },
-        { status: 400 }
-      );
-    }
-    
-      // Create review for logged in user
+      const existing = await prisma.review.findUnique({
+        where: { userId_productId: { userId, productId } },
+      });
+      if (existing) return NextResponse.json({ error: "You have already reviewed this product" }, { status: 400 });
+
       const review = await prisma.review.create({
-        data: {
-          userId,
-          productId,
-          rating,
-          title,
-          comment,
-          isVerified: true, // Assume verified for logged in users
-          isApproved: false, // Requires admin approval
-        },
-        include: {
-          user: {
-            select: {
-              firstName: true,
-              lastName: true,
-            },
-          },
-        },
+        data: { userId, productId, rating, title, comment, isVerified: true, isApproved: false },
+        include: { user: { select: { firstName: true, lastName: true } } },
       });
 
-      return NextResponse.json({
-        message: "Review submitted successfully",
-        review: {
-          id: review.id,
-          rating: review.rating,
-          title: review.title,
-          comment: review.comment,
-          isVerified: review.isVerified,
-          user: {
-            firstName: review.user.firstName,
-            lastName: review.user.lastName,
-          },
-          createdAt: review.createdAt,
-        },
-      });
+      return NextResponse.json({ message: "Review submitted and pending approval", review });
     } else {
-      // Non-logged in user - create with provided details
-      if (!firstName || !lastName || !email) {
-        return NextResponse.json(
-          { error: "Name and email are required for guest reviews" },
-          { status: 400 }
-        );
-      }
+      if (!firstName || !lastName || !email)
+        return NextResponse.json({ error: "Name and email required for guest reviews" }, { status: 400 });
 
-      // For guest users, we'll create a temporary user or handle differently
-      // For now, let's create a review without userId (we'll need to modify the schema)
-      // Actually, let's create a guest user entry
-      let guestUser = await prisma.user.findFirst({
-        where: {
-          email,
-          firstName,
-          lastName,
-        },
-      });
-
+      let guestUser = await prisma.user.findUnique({ where: { email } });
       if (!guestUser) {
         guestUser = await prisma.user.create({
           data: {
@@ -126,72 +133,22 @@ export async function POST(request: NextRequest) {
         });
       }
 
-      // Check if this guest user already reviewed this product
-      const existingReview = await prisma.review.findUnique({
-        where: {
-          userId_productId: {
-            userId: guestUser.id,
-            productId,
-        },
-      },
-    });
-    
-      if (existingReview) {
-        return NextResponse.json(
-          { error: "You have already reviewed this product" },
-          { status: 400 }
-        );
-      }
-
-      // Create review for guest user
-    const review = await prisma.review.create({
-      data: {
-          userId: guestUser.id,
-          productId,
-          rating,
-          title,
-          comment,
-          isVerified: false, // Not verified for guest users
-        isApproved: false, // Requires admin approval
-      },
-      include: {
-        user: {
-          select: {
-            firstName: true,
-            lastName: true,
-          },
-        },
-      },
-    });
-    
-      return NextResponse.json({
-        message: "Review submitted successfully",
-        review: {
-          id: review.id,
-          rating: review.rating,
-          title: review.title,
-          comment: review.comment,
-          isVerified: review.isVerified,
-          user: {
-            firstName: review.user.firstName,
-            lastName: review.user.lastName,
-          },
-          createdAt: review.createdAt,
-          },
+      const existing = await prisma.review.findUnique({
+        where: { userId_productId: { userId: guestUser.id, productId } },
       });
-        }
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: "Validation error", details: error.errors },
-        { status: 400 }
-      );
+      if (existing) return NextResponse.json({ error: "Already reviewed" }, { status: 400 });
+
+      const review = await prisma.review.create({
+        data: { userId: guestUser.id, productId, rating, title, comment, isVerified: false, isApproved: false },
+        include: { user: { select: { firstName: true, lastName: true } } },
+      });
+
+      return NextResponse.json({ message: "Review submitted and pending approval", review });
     }
-    
-    console.error("Error creating review:", error);
-    return NextResponse.json(
-      { error: "Failed to create review" },
-      { status: 500 }
-    );
+  } catch (err) {
+    if (err instanceof z.ZodError)
+      return NextResponse.json({ error: "Validation error", details: err.errors }, { status: 400 });
+    console.error("Review POST error:", err);
+    return NextResponse.json({ error: "Failed to create review" }, { status: 500 });
   }
-} 
+}

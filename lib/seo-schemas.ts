@@ -1,4 +1,111 @@
-import { SITE_URL, SITE_NAME } from "./seo"
+import {
+  SITE_URL,
+  SITE_NAME,
+  SITE_DESCRIPTION,
+  CONTACT_EMAIL,
+  CONTACT_PHONE,
+  ADDRESS_LOCALITY,
+  ADDRESS_REGION,
+  ADDRESS_COUNTRY,
+  ADDRESS_POSTAL,
+  FACEBOOK_URL,
+  INSTAGRAM_URL,
+  WHATSAPP_NUMBER,
+} from "./seo"
+
+/** Organization schema — used globally */
+export function organizationSchema() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "@id": `${SITE_URL}/#organization`,
+    name: SITE_NAME,
+    url: SITE_URL,
+    logo: {
+      "@type": "ImageObject",
+      url: `${SITE_URL}/images/logo.png`,
+      width: 200,
+      height: 60,
+    },
+    description: SITE_DESCRIPTION,
+    email: CONTACT_EMAIL,
+    telephone: CONTACT_PHONE,
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: ADDRESS_LOCALITY,
+      addressRegion: ADDRESS_REGION,
+      addressCountry: ADDRESS_COUNTRY,
+      postalCode: ADDRESS_POSTAL,
+    },
+    sameAs: [FACEBOOK_URL, INSTAGRAM_URL, `https://wa.me/${WHATSAPP_NUMBER.replace(/\D/g, "")}`],
+  }
+}
+
+/** LocalBusiness schema — use on homepage */
+export function localBusinessSchema() {
+  return {
+    "@context": "https://schema.org",
+    "@type": ["LocalBusiness", "JewelryStore"],
+    "@id": `${SITE_URL}/#localbusiness`,
+    name: SITE_NAME,
+    description: SITE_DESCRIPTION,
+    url: SITE_URL,
+    telephone: CONTACT_PHONE,
+    email: CONTACT_EMAIL,
+    image: `${SITE_URL}/images/logo.png`,
+    logo: `${SITE_URL}/images/logo.png`,
+    priceRange: "₹₹",
+    currenciesAccepted: "INR",
+    paymentAccepted: "Cash, Credit Card, Debit Card, UPI, Net Banking",
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: ADDRESS_LOCALITY,
+      addressRegion: ADDRESS_REGION,
+      addressCountry: ADDRESS_COUNTRY,
+      postalCode: ADDRESS_POSTAL,
+    },
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: "23.0225",
+      longitude: "72.5714",
+    },
+    areaServed: {
+      "@type": "Country",
+      name: "India",
+    },
+    hasOfferCatalog: {
+      "@type": "OfferCatalog",
+      name: "Sterling Silver Jewellery",
+      itemListElement: [
+        { "@type": "Offer", itemOffered: { "@type": "Product", name: "Sterling Silver Rings" } },
+        { "@type": "Offer", itemOffered: { "@type": "Product", name: "Sterling Silver Necklaces" } },
+        { "@type": "Offer", itemOffered: { "@type": "Product", name: "Sterling Silver Bracelets" } },
+        { "@type": "Offer", itemOffered: { "@type": "Product", name: "Sterling Silver Pendants" } },
+        { "@type": "Offer", itemOffered: { "@type": "Product", name: "Sterling Silver Chains" } },
+      ],
+    },
+    sameAs: [FACEBOOK_URL, INSTAGRAM_URL],
+  }
+}
+
+/** WebSite schema with Sitelinks Searchbox */
+export function websiteSchema() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${SITE_URL}/#website`,
+    name: SITE_NAME,
+    url: SITE_URL,
+    potentialAction: {
+      "@type": "SearchAction",
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: `${SITE_URL}/shop?q={search_term_string}`,
+      },
+      "query-input": "required name=search_term_string",
+    },
+  }
+}
 
 /** Product schema for product pages */
 export function productSchema(product: {

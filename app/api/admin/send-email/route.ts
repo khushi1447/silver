@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "../../../../lib/auth";
+import { requireAdmin } from "@/lib/admin-auth";
 import nodemailer from "nodemailer";
 import { z } from "zod";
 
@@ -13,10 +12,8 @@ const schema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.isAdmin) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { error } = await requireAdmin(request);
+    if (error) return error;
 
     const body = await request.json();
     const { to, subject, html, text } = schema.parse(body);

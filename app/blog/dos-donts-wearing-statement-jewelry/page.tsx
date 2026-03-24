@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     description:
       "Learn how to wear statement jewelry with elegance. Discover the key do's and don'ts to style bold necklaces, earrings, and bracelets without overwhelming your outfit.",
     url: "https://www.silverline925.in/blog/dos-donts-wearing-statement-jewelry",
-    siteName: "Silver Line",
+    siteName: "Silverline925",
     type: "article",
     images: [
       {

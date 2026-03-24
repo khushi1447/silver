@@ -1,73 +1,86 @@
 import { notFound } from "next/navigation"
 import { Metadata } from "next"
-import { SITE_URL } from "@/lib/seo"
+import { SITE_URL, SITE_NAME } from "@/lib/seo"
 import { productSchema, breadcrumbSchema } from "@/lib/seo-schemas"
 import JsonLd from "@/components/JsonLd"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
 import ProductDetails from "@/components/ProductDetails"
 import { getProductById } from "@/lib/services/product"
+import { prisma } from "@/lib/db"
 
 interface ProductPageProps {
-  params: {
-    id: string
+  params: Promise<{ id: string }>
+}
+
+export const revalidate = 3600 // revalidate hourly
+
+export async function generateStaticParams() {
+  try {
+    const products = await prisma.product.findMany({
+      where: { stock: { gt: 0 } },
+      select: { id: true },
+      take: 200,
+    })
+    return products.map((p) => ({ id: String(p.id) }))
+  } catch {
+    return []
   }
 }
 
-export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {    
+export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   try {
     const { id } = await params
     const productId = parseInt(id)
-    
-    if (isNaN(productId)) {
-      return {
-        title: "Product Not Found",
-      }
-    }
-    
+    if (isNaN(productId)) return { title: "Product Not Found" }
+
     const product = await getProductById(productId)
-    
-    if (!product) {
-      return {
-        title: "Product Not Found",
-      }
-    }
+    if (!product) return { title: "Product Not Found" }
+
+    const title = `Buy ${product.name} - 925 Sterling Silver | ${SITE_NAME}`
+    const description = product.shortDescription || product.description ||
+      `Shop ${product.name} in premium 925 sterling silver. Hypoallergenic, hallmarked, free shipping across India. Only at ${SITE_NAME}.`
+    const imageUrl = product.images?.[0]?.url || `${SITE_URL}/images/logo.png`
+    const canonical = `${SITE_URL}/product/${productId}`
 
     return {
-      title: `${product.name} - Elegant Jewelry`,
-      description: product.shortDescription || product.description,
+      title,
+      description,
+      keywords: `${product.name}, ${product.category?.name || "silver jewellery"}, 925 sterling silver, buy silver jewellery online India, ${SITE_NAME}`,
+      alternates: { canonical },
       openGraph: {
-        title: product.name,
-        description: product.shortDescription || product.description || undefined,
-        images: product.images.map(img => img.url),
+        title,
+        description,
+        url: canonical,
+        siteName: SITE_NAME,
+        type: "article",
+        images: product.images?.map((img) => ({
+          url: img.url,
+          width: 800,
+          height: 800,
+          alt: img.altText || product.name,
+        })) || [{ url: imageUrl, width: 800, height: 800, alt: product.name }],
       },
-      alternates: {
-        canonical: `${SITE_URL}/product/${productId}`,
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+        images: [imageUrl],
       },
     }
-  } catch (error) {
-    return {
-      title: "Product Not Found",
-    }
+  } catch {
+    return { title: "Product Not Found" }
   }
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
   try {
     const { id } = await params
-    
-    // Validate ID format
-    if (!id || isNaN(Number(id))) {
-      console.error('Invalid product ID:', id)
-      notFound()
-    }
-    
+    if (!id || isNaN(Number(id))) notFound()
+
     const productId = parseInt(id)
     const product = await getProductById(productId)
-    
-    if (!product) {
-      notFound()
-    }
+    if (!product) notFound()
 
     const breadcrumbs = breadcrumbSchema([
       { name: "Home", url: "/" },
@@ -84,20 +97,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
         <Footer />
       </div>
     )
-  } catch (error) {
-    console.error('Error in ProductPage:', error)
+  } catch {
     notFound()
   }
 }
-
-// Note: We can't use generateStaticParams with dynamic API data
-// If you want static generation, you'll need to fetch all product IDs at build time
-// export async function generateStaticParams() {
-//   const response = await api.products.getAll({ limit: 1000 })
-//   if (response.data?.products) {
-//     return response.data.products.map((product) => ({
-//       id: product.id,
-//     }))
-//   }
-//   return []
-// }

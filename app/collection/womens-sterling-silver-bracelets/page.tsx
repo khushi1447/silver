@@ -17,8 +17,13 @@ export const metadata: Metadata = {
     description:
       "Explore premium women's sterling silver bracelets with minimal and elegant styles. Perfect for gifting and daily wear.",
     url: "https://www.silverline925.in/collection/womens-sterling-silver-bracelets",
-    siteName: "Silver Line",
+    siteName: "Silverline925",
     type: "article",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Best Women's Sterling Silver Bracelets | Elegant Daily Wear Picks",
+    description: "Explore premium women's sterling silver bracelets with minimal and elegant styles. Perfect for gifting and daily wear.",
   },
 }
 

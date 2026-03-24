@@ -17,8 +17,13 @@ export const metadata: Metadata = {
     description:
       "Check the latest silver infinity ring price range with premium sterling silver designs. Perfect symbol of love and eternity for gifting and daily wear at Silverline925.",
     url: "https://www.silverline925.in/collection/silver-infinity-rings",
-    siteName: "Silver Line",
+    siteName: "Silverline925",
     type: "article",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Silver Infinity Rings Price and Latest Designs Online",
+    description: "Check the latest silver infinity ring price range with premium sterling silver designs. Perfect symbol of love and eternity for gifting and daily wear.",
   },
 }
 

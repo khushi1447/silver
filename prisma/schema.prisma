@@ -12,6 +12,13 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+enum UserRole {
+  CUSTOMER
+  STAFF
+  ADMIN
+  SUPER_ADMIN
+}
+
 model User {
   id          Int       @id @default(autoincrement())
   firstName   String
@@ -20,6 +27,7 @@ model User {
   password    String
   phone       String?
   isAdmin     Boolean   @default(false)
+  role        UserRole  @default(CUSTOMER)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -406,4 +414,23 @@ model ReturnLog {
   adminId          Int?          // optional admin who performed the action
 
   createdAt        DateTime      @default(now())
+}
+
+model BlogPost {
+  id             Int       @id @default(autoincrement())
+  slug           String    @unique
+  title          String
+  excerpt        String    @db.Text
+  content        String    @db.Text  // HTML content
+  image          String?
+  category       String
+  tags           String[]  // e.g. ["styling", "tips"]
+  readTime       String    @default("5 min read")
+  published      Boolean   @default(true)
+  publishedAt    DateTime  @default(now())
+  seoTitle       String?
+  seoDescription String?   @db.Text
+  seoKeywords    String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 }

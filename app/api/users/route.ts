@@ -1,79 +1,47 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "../../../lib/auth";
+import { requireAdmin } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
+import bcrypt from "bcryptjs";
 
-// Validation schema for updating users
-const updateUserSchema = z.object({
-  firstName: z.string().min(1, "First name is required").optional(),
-  lastName: z.string().min(1, "Last name is required").optional(),
-  email: z.string().email("Invalid email").optional(),
+const createUserSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  email: z.string().email("Invalid email"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
   phone: z.string().optional(),
-  isAdmin: z.boolean().optional(),
+  role: z.enum(["CUSTOMER", "STAFF", "ADMIN", "SUPER_ADMIN"]).optional(),
 });
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.isAdmin) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-    
+    const { error } = await requireAdmin(request);
+    if (error) return error;
+
     const { searchParams } = new URL(request.url);
-    
-    // Pagination parameters
+
     const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");
+    const limit = parseInt(searchParams.get("limit") || "20");
     const offset = (page - 1) * limit;
-    
-    // Filter parameters
+
     const search = searchParams.get("search");
-    const isAdmin = searchParams.get("isAdmin");
-    const status = searchParams.get("status"); // all, customer, admin
-    
-    // Build where clause
+    const role = searchParams.get("role"); // CUSTOMER, STAFF, ADMIN, SUPER_ADMIN, all
+
     const where: any = {};
-    
+
     if (search) {
       where.OR = [
         { firstName: { contains: search, mode: "insensitive" } },
         { lastName: { contains: search, mode: "insensitive" } },
         { email: { contains: search, mode: "insensitive" } },
         { phone: { contains: search, mode: "insensitive" } },
-        // Search by full name combination
-        {
-          AND: [
-            { firstName: { contains: search.split(' ')[0] || '', mode: "insensitive" } },
-            { lastName: { contains: search.split(' ')[1] || '', mode: "insensitive" } }
-          ]
-        }
       ];
     }
-    
-    // Handle status filter (admin, customer, all)
-    if (status && status !== "all") {
-      if (status === "admin") {
-        where.isAdmin = true;
-      } else if (status === "customer") {
-        where.isAdmin = false;
-      }
+
+    if (role && role !== "all") {
+      where.role = role;
     }
-    
-    // Legacy support for isAdmin parameter
-    if (isAdmin !== null && !status) {
-      where.isAdmin = isAdmin === "true";
-    }
-    
-    // Debug logging
-    console.log('Users API - Query params:', { search, status, isAdmin, page, limit });
-    console.log('Users API - Where clause:', where);
-    
-    // Get users with pagination
+
     const [users, totalCount] = await Promise.all([
       prisma.user.findMany({
         where,
@@ -84,6 +52,7 @@ export async function GET(request: NextRequest) {
           email: true,
           phone: true,
           isAdmin: true,
+          role: true,
           createdAt: true,
           updatedAt: true,
           _count: {
@@ -100,15 +69,15 @@ export async function GET(request: NextRequest) {
       }),
       prisma.user.count({ where }),
     ]);
-    
-    // Transform users for response
-    const transformedUsers = users.map(user => ({
+
+    const transformedUsers = users.map((user) => ({
       id: user.id,
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
       phone: user.phone,
       isAdmin: user.isAdmin,
+      role: user.role,
       stats: {
         orders: user._count.orders,
         reviews: user._count.reviews,
@@ -117,17 +86,9 @@ export async function GET(request: NextRequest) {
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     }));
-    
+
     const totalPages = Math.ceil(totalCount / limit);
-    
-    // Debug logging
-    console.log('Users API - Results:', { 
-      totalCount, 
-      usersCount: transformedUsers.length, 
-      adminCount: transformedUsers.filter(u => u.isAdmin).length,
-      customerCount: transformedUsers.filter(u => !u.isAdmin).length
-    });
-    
+
     return NextResponse.json({
       users: transformedUsers,
       pagination: {
@@ -141,9 +102,60 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error fetching users:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch users" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to fetch users" }, { status: 500 });
   }
-} 
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const { error } = await requireAdmin(request);
+    if (error) return error;
+
+    const body = await request.json();
+    let validatedData: z.infer<typeof createUserSchema>;
+    try {
+      validatedData = createUserSchema.parse(body);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return NextResponse.json({ error: "Validation failed", details: err.errors }, { status: 400 });
+      }
+      throw err;
+    }
+
+    const existing = await prisma.user.findUnique({ where: { email: validatedData.email } });
+    if (existing) {
+      return NextResponse.json({ error: "Email already registered" }, { status: 400 });
+    }
+
+    const role = validatedData.role || "CUSTOMER";
+    const isAdmin = role === "ADMIN" || role === "SUPER_ADMIN";
+    const hashedPassword = await bcrypt.hash(validatedData.password, 10);
+
+    const user = await prisma.user.create({
+      data: {
+        firstName: validatedData.firstName,
+        lastName: validatedData.lastName,
+        email: validatedData.email,
+        password: hashedPassword,
+        phone: validatedData.phone,
+        role,
+        isAdmin,
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        phone: true,
+        role: true,
+        isAdmin: true,
+        createdAt: true,
+      },
+    });
+
+    return NextResponse.json({ message: "User created successfully", user }, { status: 201 });
+  } catch (error) {
+    console.error("Error creating user:", error);
+    return NextResponse.json({ error: "Failed to create user" }, { status: 500 });
+  }
+}

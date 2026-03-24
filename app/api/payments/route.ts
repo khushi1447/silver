@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../lib/auth";
+import { requireAdmin } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
 
@@ -17,15 +18,9 @@ const createPaymentSchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.isAdmin) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-    
+    const { error } = await requireAdmin(request);
+    if (error) return error;
+
     const { searchParams } = new URL(request.url);
     
     // Pagination parameters
@@ -233,16 +228,11 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const { error } = await requireAdmin(request);
+    if (error) return error;
+
     const body = await request.json();
     const { paymentId, status, transactionId, gatewayResponse, failureReason } = body;
-    
-    if (!session?.user?.isAdmin) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
     
     // Update payment status
     const payment = await prisma.payment.update({

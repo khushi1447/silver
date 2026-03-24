@@ -17,8 +17,13 @@ export const metadata: Metadata = {
     description:
       "Browse unique sterling silver rings for women with artistic designs and handcrafted detailing. Stand out with elegant and meaningful ring styles at Silverline925.",
     url: "https://www.silverline925.in/collection/unique-sterling-rings-women",
-    siteName: "Silver Line",
+    siteName: "Silverline925",
     type: "article",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Shop Unique Sterling Silver Rings for Women Online",
+    description: "Browse unique sterling silver rings for women with artistic designs and handcrafted detailing. Stand out with elegant and meaningful ring styles at Silverline925.",
   },
 }
 

@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     description:
       "Don't guess your fit. Learn how to accurately measure your ring size at home using simple tools. Perfect for shopping Silverline925 sterling silver rings.",
     url: "https://www.silverline925.in/blog/how-to-measure-ring-size-at-home",
-    siteName: "Silver Line",
+    siteName: "Silverline925",
     type: "article",
     images: [
       {

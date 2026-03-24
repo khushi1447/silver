@@ -1,16 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
+import { requireAdmin } from "@/lib/admin-auth"
 import { prisma } from "@/lib/db"
 import { rejectReturnSchema } from "@/lib/validation/returns"
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.isAdmin) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const { admin, error } = await requireAdmin(request)
+    if (error) return error
 
     const idNum = Number(id)
     if (!idNum) return NextResponse.json({ error: "Invalid id" }, { status: 400 })
@@ -30,7 +27,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           create: {
             status: "REJECTED",
             note: reason,
-            adminId: Number(session.user.id),
+            adminId: Number(admin.adminId),
           },
         },
       },

@@ -6,16 +6,21 @@ import { SITE_URL } from "@/lib/seo"
 import { Award, Users, Heart, Gem } from "lucide-react"
 
 export const metadata = {
-  title: "About Us",
-  description: "Learn about Silver Line's story, craftsmanship, and commitment to creating beautiful jewelry. Discover our values and passion for excellence.",
-  keywords: "about Silver Line, jewelry story, craftsmanship, handmade jewelry, our values",
+  title: "About Us | Silverline925 - Our Story & Craftsmanship",
+  description: "Learn about Silverline925's story, craftsmanship, and commitment to creating beautiful 925 sterling silver jewellery. Discover our values and passion for excellence.",
+  keywords: "about Silverline925, silver jewellery story, craftsmanship, handmade jewellery, sterling silver brand India",
   alternates: { canonical: `${SITE_URL}/about` },
   openGraph: {
-    title: "About Us - Silver Line",
-    description: "Learn about Silver Line's story, craftsmanship, and commitment to creating beautiful jewelry.",
+    title: "About Us | Silverline925 - Our Story & Craftsmanship",
+    description: "Learn about Silverline925's story, craftsmanship, and commitment to creating beautiful 925 sterling silver jewellery.",
     url: `${SITE_URL}/about`,
-    siteName: "Silver Line",
+    siteName: "Silverline925",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "About Us | Silverline925 - Our Story & Craftsmanship",
+    description: "Learn about Silverline925's story, craftsmanship, and commitment to creating beautiful 925 sterling silver jewellery.",
   },
 }
 

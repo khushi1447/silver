@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/db";
-import { authOptions } from "@/lib/auth";
+import { requireAdmin } from "@/lib/admin-auth";
 import { z } from "zod";
 
 // Validation schema for image operations
@@ -48,24 +47,18 @@ export async function POST(
 ) {
   try {
     const { id } = await params;
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.isAdmin) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-    
+    const { error } = await requireAdmin(request);
+    if (error) return error;
+
     const productId = parseInt(id);
-    
+
     if (isNaN(productId)) {
       return NextResponse.json(
         { error: "Invalid product ID" },
         { status: 400 }
       );
     }
-    
+
     // Check if product exists
     const product = await prisma.product.findUnique({
       where: { id: productId },
@@ -129,24 +122,18 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.isAdmin) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-    
+    const { error } = await requireAdmin(request);
+    if (error) return error;
+
     const productId = parseInt(id);
-    
+
     if (isNaN(productId)) {
       return NextResponse.json(
         { error: "Invalid product ID" },
         { status: 400 }
       );
     }
-    
+
     const body = await request.json();
     const { images } = body; // Array of image updates
     

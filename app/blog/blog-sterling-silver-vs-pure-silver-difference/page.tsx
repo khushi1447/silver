@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     description:
       "Learn the difference between sterling silver and pure silver including durability, composition, maintenance, and which is better for jewellery. Complete buying guide.",
     url: "https://www.silverline925.in/blog/blog-sterling-silver-vs-pure-silver-difference",
-    siteName: "Silver Line",
+    siteName: "Silverline925",
     type: "article",
     images: [
       {

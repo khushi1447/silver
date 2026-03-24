@@ -2,7 +2,6 @@ import type React from "react"
 import type { Metadata } from "next"
 import Script from "next/script"
 import { Inter, Playfair_Display } from "next/font/google"
-
 import { Analytics } from "@vercel/analytics/next"
 
 import {
@@ -10,35 +9,35 @@ import {
   SITE_NAME,
   SITE_DESCRIPTION,
   SITE_KEYWORDS,
-  FACEBOOK_URL,
-  INSTAGRAM_URL,
-  CONTACT_EMAIL,
-  CONTACT_PHONE,
   GOOGLE_ANALYTICS_ID,
   GOOGLE_SITE_VERIFICATION,
 } from "@/lib/seo"
+import { organizationSchema, localBusinessSchema, websiteSchema } from "@/lib/seo-schemas"
 
+import WhatsAppFloat from "@/components/WhatsAppFloat"
+import MetaPixel from "@/components/MetaPixel"
+import Providers from "@/components/Providers"
+import { Toaster } from "@/components/ui/toaster"
 import "./globals.css"
 
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
   display: "swap",
+  preload: true,
 })
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
   variable: "--font-playfair",
   display: "swap",
+  preload: true,
 })
-import WhatsAppFloat from "@/components/WhatsAppFloat"
-import Providers from "@/components/Providers"
-import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `${SITE_NAME} - The Endless Shine of Silver`,
+    default: `${SITE_NAME} | Buy 925 Sterling Silver Jewellery Online India`,
     template: `%s | ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
@@ -46,29 +45,29 @@ export const metadata: Metadata = {
   authors: [{ name: SITE_NAME, url: SITE_URL }],
   creator: SITE_NAME,
   publisher: SITE_NAME,
-  alternates: {
-    canonical: "/",
-  },
+  alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     locale: "en_IN",
     url: SITE_URL,
     siteName: SITE_NAME,
-    title: `${SITE_NAME} - The Endless Shine of Silver`,
+    title: `${SITE_NAME} | Buy 925 Sterling Silver Jewellery Online India`,
     description: SITE_DESCRIPTION,
     images: [
       {
         url: `${SITE_URL}/images/logo.png`,
         width: 1200,
         height: 630,
-        alt: `${SITE_NAME} - Handcrafted Silver Jewelry`,
+        alt: `${SITE_NAME} - Premium 925 Sterling Silver Jewellery`,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: `${SITE_NAME} - The Endless Shine of Silver`,
+    site: "@silverline925",
+    title: `${SITE_NAME} | Buy 925 Sterling Silver Jewellery Online India`,
     description: SITE_DESCRIPTION,
+    images: [`${SITE_URL}/images/logo.png`],
   },
   robots: {
     index: true,
@@ -76,81 +75,43 @@ export const metadata: Metadata = {
     googleBot: {
       index: true,
       follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
     },
   },
-  verification: {
-    google: GOOGLE_SITE_VERIFICATION,
-  },
+  verification: { google: GOOGLE_SITE_VERIFICATION },
   icons: {
-    icon: [
-      { url: "/favicon.ico" },
-      { url: "/images/logo.png", type: "image/png" },
-    ],
+    icon: [{ url: "/favicon.ico" }, { url: "/images/logo.png", type: "image/png" }],
     shortcut: "/favicon.ico",
     apple: "/images/logo.png",
   },
   category: "jewelry",
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
-  },
+  formatDetection: { email: false, address: false, telephone: false },
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`scroll-smooth ${inter.variable} ${playfair.variable}`}>
+    <html lang="en-IN" className={`scroll-smooth ${inter.variable} ${playfair.variable}`}>
       <head>
-        {/* JSON-LD: Organization + WebSite schema for SEO */}
+        {/* Global JSON-LD: Organization + LocalBusiness + WebSite schemas */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify([
-              {
-                "@context": "https://schema.org",
-                "@type": "Organization",
-                name: SITE_NAME,
-                url: SITE_URL,
-                logo: `${SITE_URL}/images/logo.png`,
-                description: SITE_DESCRIPTION,
-                contactPoint: {
-                  "@type": "ContactPoint",
-                  telephone: CONTACT_PHONE.replace(/\s/g, ""),
-                  email: CONTACT_EMAIL,
-                  contactType: "customer service",
-                  areaServed: "IN",
-                  availableLanguage: "English, Hindi",
-                },
-                sameAs: [FACEBOOK_URL, INSTAGRAM_URL],
-              },
-              {
-                "@context": "https://schema.org",
-                "@type": "WebSite",
-                name: SITE_NAME,
-                url: SITE_URL,
-                description: SITE_DESCRIPTION,
-                publisher: { "@id": `${SITE_URL}/#organization` },
-                inLanguage: "en-IN",
-              },
+              organizationSchema(),
+              localBusinessSchema(),
+              websiteSchema(),
             ]),
           }}
         />
-        {/* Google tag (gtag.js) */}
+        {/* Google Analytics */}
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ANALYTICS_ID}`}
           strategy="afterInteractive"
         />
         <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', '${GOOGLE_ANALYTICS_ID}');
-          `}
+          {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${GOOGLE_ANALYTICS_ID}',{page_path:window.location.pathname});`}
         </Script>
       </head>
 
@@ -158,6 +119,7 @@ export default function RootLayout({
         <Providers>
           {children}
           <WhatsAppFloat />
+          <MetaPixel />
           <Toaster />
           <Analytics />
         </Providers>

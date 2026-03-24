@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     description:
       "Discover the must have everyday silver jewellery essentials every woman should own. Explore sterling silver rings, earrings, chains, and bracelets perfect for daily wear.",
     url: "https://www.silverline925.in/blog/everyday-silver-jewellery-essentials-every-woman-should-own",
-    siteName: "Silver Line",
+    siteName: "Silverline925",
     type: "article",
     images: [
       {

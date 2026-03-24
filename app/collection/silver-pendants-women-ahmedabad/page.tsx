@@ -17,8 +17,13 @@ export const metadata: Metadata = {
     description:
       "Find elegant silver pendants for women in Ahmedabad with fast delivery and handcrafted designs. Explore the Latest styles at Silverline925.",
     url: "https://www.silverline925.in/collection/silver-pendants-women-ahmedabad",
-    siteName: "Silver Line",
+    siteName: "Silverline925",
     type: "article",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Buy Best Silver Pendants for Women in Ahmedabad At Best Price",
+    description: "Find elegant silver pendants for women in Ahmedabad with fast delivery and handcrafted designs. Explore the Latest styles at Silverline925.",
   },
 }
 

@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     description:
       "Discover elegant and office friendly silver jewellery styling tips to elevate your workwear. Learn how to choose subtle, professional pieces for a polished everyday look.",
     url: "https://www.silverline925.in/blog/office-friendly-silver-jewellery-styling-tips",
-    siteName: "Silver Line",
+    siteName: "Silverline925",
     type: "article",
     images: [
       {

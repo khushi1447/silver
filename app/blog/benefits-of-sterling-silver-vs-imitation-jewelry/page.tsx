@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     description:
       "Discover why pure sterling silver is a smarter investment than imitation jewelry. Learn about its durability, skin-friendly nature, long-term value, and timeless appeal with Silverline925.",
     url: "https://www.silverline925.in/blog/benefits-of-sterling-silver-vs-imitation-jewelry",
-    siteName: "Silver Line",
+    siteName: "Silverline925",
     type: "article",
     images: [
       {

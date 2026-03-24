@@ -1,81 +1,92 @@
 import type { MetadataRoute } from "next"
 import { SITE_URL } from "@/lib/seo"
+import { prisma } from "@/lib/db"
 
 const BASE_URL = SITE_URL
 
-// Define page types with their priorities and change frequencies
-interface PageConfig {
-  path: string
-  priority: number
-  changeFrequency: "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "never"
-}
+const staticPages = [
+  // Homepage
+  { path: "/", priority: 1.0, changeFrequency: "daily" as const },
 
-const pages: PageConfig[] = [
-  // Homepage - Highest Priority
-  { path: "/", priority: 1.0, changeFrequency: "daily" },
+  // Collection pages — primary revenue pages
+  { path: "/collection/silver-cuban-chains-for-men", priority: 0.9, changeFrequency: "weekly" as const },
+  { path: "/collection/silver-pendants-women-ahmedabad", priority: 0.9, changeFrequency: "weekly" as const },
+  { path: "/collection/delicate-silver-pendant-necklaces", priority: 0.9, changeFrequency: "weekly" as const },
+  { path: "/collection/best-silver-necklaces-women", priority: 0.9, changeFrequency: "weekly" as const },
+  { path: "/collection/mens-sterling-silver-bracelets", priority: 0.9, changeFrequency: "weekly" as const },
+  { path: "/collection/womens-sterling-silver-bracelets", priority: 0.9, changeFrequency: "weekly" as const },
+  { path: "/collection/silver-rings-men", priority: 0.9, changeFrequency: "weekly" as const },
+  { path: "/collection/silver-rings-women", priority: 0.9, changeFrequency: "weekly" as const },
+  { path: "/collection/unique-sterling-rings-women", priority: 0.9, changeFrequency: "weekly" as const },
+  { path: "/collection/silver-infinity-rings", priority: 0.9, changeFrequency: "weekly" as const },
 
-  // Collection Pages - Money Pages (Highest Priority after Homepage)
-  // These are your primary revenue-generating pages
-  { path: "/collection/silver-cuban-chains-for-men", priority: 0.9, changeFrequency: "weekly" },
-  { path: "/collection/silver-pendants-women-ahmedabad", priority: 0.9, changeFrequency: "weekly" },
-  { path: "/collection/delicate-silver-pendant-necklaces", priority: 0.9, changeFrequency: "weekly" },
-  { path: "/collection/best-silver-necklaces-women", priority: 0.9, changeFrequency: "weekly" },
-  { path: "/collection/mens-sterling-silver-bracelets", priority: 0.9, changeFrequency: "weekly" },
-  { path: "/collection/womens-sterling-silver-bracelets", priority: 0.9, changeFrequency: "weekly" },
-  { path: "/collection/silver-rings-men", priority: 0.9, changeFrequency: "weekly" },
-  { path: "/collection/silver-rings-women", priority: 0.9, changeFrequency: "weekly" },
-  { path: "/collection/unique-sterling-rings-women", priority: 0.9, changeFrequency: "weekly" },
-  { path: "/collection/silver-infinity-rings", priority: 0.9, changeFrequency: "weekly" },
+  // Shop
+  { path: "/shop", priority: 0.8, changeFrequency: "daily" as const },
 
-  // Shop Page - Important for Product Discovery
-  { path: "/shop", priority: 0.8, changeFrequency: "daily" },
+  // Blog listing
+  { path: "/blog", priority: 0.6, changeFrequency: "weekly" as const },
 
-  // Blog Pages - Content Marketing (Lower than collections)
-  { path: "/blog", priority: 0.6, changeFrequency: "weekly" },
-  { path: "/blog/silver-jewellery-styling-tips-for-modern-women", priority: 0.6, changeFrequency: "monthly" },
-  { path: "/blog/benefits-of-sterling-silver-vs-imitation-jewelry", priority: 0.6, changeFrequency: "monthly" },
-  { path: "/blog/dos-donts-wearing-statement-jewelry", priority: 0.6, changeFrequency: "monthly" },
-  { path: "/blog/how-to-measure-ring-size-at-home", priority: 0.6, changeFrequency: "monthly" },
-  { path: "/blog/office-friendly-silver-jewellery-styling-tips", priority: 0.6, changeFrequency: "monthly" },
-  { path: "/blog/everyday-silver-jewellery-essentials-every-woman-should-own", priority: 0.6, changeFrequency: "monthly" },
+  // Info pages
+  { path: "/about", priority: 0.5, changeFrequency: "monthly" as const },
+  { path: "/contact", priority: 0.5, changeFrequency: "monthly" as const },
 
-  // Core Information Pages
-  { path: "/about", priority: 0.5, changeFrequency: "monthly" },
-  { path: "/contact", priority: 0.5, changeFrequency: "monthly" },
-
-  // Policy Pages (trust signals, SEO)
-  { path: "/privacy", priority: 0.3, changeFrequency: "yearly" },
-  { path: "/terms", priority: 0.3, changeFrequency: "yearly" },
-  { path: "/shipping-policy", priority: 0.3, changeFrequency: "yearly" },
-  { path: "/refund-policy", priority: 0.3, changeFrequency: "yearly" },
-  { path: "/return-policy", priority: 0.3, changeFrequency: "yearly" },
-  { path: "/cancellation-policy", priority: 0.3, changeFrequency: "yearly" },
-
-  // Additional Blog Pages
-  { path: "/blog/everyday-silver-jewellery-essentials-every-woman-should-own", priority: 0.5, changeFrequency: "monthly" },
-  { path: "/blog/how-to-measure-ring-size-at-home", priority: 0.5, changeFrequency: "monthly" },
-  { path: "/blog/office-friendly-silver-jewellery-styling-tips", priority: 0.5, changeFrequency: "monthly" },
-  { path: "/blog/blog-sterling-silver-vs-pure-silver-difference", priority: 0.5, changeFrequency: "monthly" },
-
-  // REMOVED: Low-value pages that waste crawl budget
-  // - /cart (user-specific, no SEO value)
-  // - /checkout (user-specific, no SEO value)
-  // - /login (user-specific, no SEO value)
-  // - /signup (user-specific, no SEO value)
-  // - /wishlist (user-specific, no SEO value)
-  // - /track (user-specific, no SEO value)
-  // - Policy pages (low priority, minimal SEO value)
-  // These pages are still accessible but excluded from sitemap to preserve crawl budget
+  // Policy pages
+  { path: "/privacy", priority: 0.3, changeFrequency: "yearly" as const },
+  { path: "/terms", priority: 0.3, changeFrequency: "yearly" as const },
+  { path: "/shipping-policy", priority: 0.3, changeFrequency: "yearly" as const },
+  { path: "/refund-policy", priority: 0.3, changeFrequency: "yearly" as const },
+  { path: "/return-policy", priority: 0.3, changeFrequency: "yearly" as const },
+  { path: "/cancellation-policy", priority: 0.3, changeFrequency: "yearly" as const },
 ]
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date()
 
-  return pages.map((page) => ({
+  // Static pages
+  const staticEntries: MetadataRoute.Sitemap = staticPages.map((page) => ({
     url: `${BASE_URL}${page.path}`,
     lastModified: now,
     changeFrequency: page.changeFrequency,
     priority: page.priority,
   }))
-}
 
+  // Dynamic product pages from database
+  let productEntries: MetadataRoute.Sitemap = []
+  try {
+    const products = await prisma.product.findMany({
+      where: { stock: { gt: 0 } }, // only in-stock products
+      select: { id: true, updatedAt: true },
+      orderBy: { updatedAt: "desc" },
+    })
+
+    productEntries = products.map((product) => ({
+      url: `${BASE_URL}/product/${product.id}`,
+      lastModified: product.updatedAt,
+      changeFrequency: "weekly" as const,
+      priority: 0.7,
+    }))
+  } catch (err) {
+    console.error("Sitemap: failed to fetch products", err)
+  }
+
+  // Dynamic blog post pages from database
+  let blogEntries: MetadataRoute.Sitemap = []
+  try {
+    const posts = await prisma.blogPost.findMany({
+      where: { published: true },
+      select: { slug: true, updatedAt: true },
+      orderBy: { publishedAt: "desc" },
+    })
+
+    blogEntries = posts.map((post) => ({
+      url: `${BASE_URL}/blog/${post.slug}`,
+      lastModified: post.updatedAt,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    }))
+  } catch (err) {
+    console.error("Sitemap: failed to fetch blog posts", err)
+  }
+
+  return [...staticEntries, ...productEntries, ...blogEntries]
+}

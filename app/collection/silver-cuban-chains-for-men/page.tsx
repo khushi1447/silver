@@ -17,8 +17,13 @@ export const metadata: Metadata = {
     description:
       "Shop silver Cuban chains for men with bold styles and Premium quality. Perfect daily wear pieces in solid silver. Explore the Latest collection at Silverline925.",
     url: "https://www.silverline925.in/collection/silver-cuban-chains-for-men",
-    siteName: "Silver Line",
+    siteName: "Silverline925",
     type: "article",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Buy Best Silver Cuban Chains for Men at Best Price in 2026",
+    description: "Shop silver Cuban chains for men with bold styles and premium quality. Perfect daily wear pieces in solid silver. Explore the latest collection at Silverline925.",
   },
 }
 

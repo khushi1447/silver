@@ -17,8 +17,13 @@ export const metadata: Metadata = {
     description:
       "Explore the best silver rings for men featuring bold designs, premium sterling silver and perfect fits. Shop the latest collection at Silverline925.",
     url: "https://www.silverline925.in/collection/silver-rings-men",
-    siteName: "Silver Line",
+    siteName: "Silverline925",
     type: "article",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Buy Best Silver Rings for Men at Best Price Online",
+    description: "Explore the best silver rings for men featuring bold designs, premium sterling silver and perfect fits. Shop the latest collection at Silverline925.",
   },
 }
 

@@ -17,8 +17,13 @@ export const metadata: Metadata = {
     description:
       "Discover the best silver rings for women, crafted with elegant designs and premium quality silver. Perfect for daily wear, occasions, and gifting. Explore trending styles at Silverline925.",
     url: "https://www.silverline925.in/collection/silver-rings-women",
-    siteName: "Silver Line",
+    siteName: "Silverline925",
     type: "article",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Buy Best Silver Rings for Women Online at Silverline925",
+    description: "Discover the best silver rings for women, crafted with elegant designs and premium quality silver. Perfect for daily wear, occasions, and gifting.",
   },
 }
 

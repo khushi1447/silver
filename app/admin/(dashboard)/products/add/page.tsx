@@ -136,7 +136,6 @@ export default function AddProductPage() {
     if (parsedStock === null || !Number.isFinite(parsedStock) || parsedStock < 0) errors.push("Valid stock quantity is required")
     if (!formData.categoryId) errors.push("Category is required")
     if (!formData.size.trim()) errors.push("Size is required")
-    if (formData.images.length < 3) errors.push("Minimum 3 images required")
     if (formData.images.length > 10) errors.push("Maximum 10 images allowed")
 
     return errors
@@ -488,17 +487,16 @@ export default function AddProductPage() {
             {/* Product Images */}
             <div className="space-y-4">
               <div>
-                <h3 className="text-lg font-semibold">Product Images *</h3>
+                <h3 className="text-lg font-semibold">Product Images</h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Add minimum 3 high-quality product images. First image will be the primary display image.
+                  Add product images. First image will be the primary display image.
                 </p>
               </div>
               <ImageUpload
                 value={formData.images}
                 onChange={handleImagesChange}
                 maxImages={10}
-                minImages={3}
-                required
+                minImages={0}
               />
             </div>
 

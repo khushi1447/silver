@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
+import { requireAdmin } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
-import { authOptions } from "@/lib/auth";
 import { z } from "zod";
 
 // Validation schema for updating coupons
@@ -28,14 +27,8 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.isAdmin) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+    const { error } = await requireAdmin(request);
+    if (error) return error;
     
     const couponId = parseInt(id);
     
@@ -92,14 +85,8 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.isAdmin) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+    const { error } = await requireAdmin(request);
+    if (error) return error;
     
     const couponId = parseInt(id);
     
@@ -218,14 +205,8 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.isAdmin) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+    const { error } = await requireAdmin(request);
+    if (error) return error;
     
     const couponId = parseInt(id);
     

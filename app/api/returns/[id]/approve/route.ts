@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
+import { requireAdmin } from "@/lib/admin-auth"
 import { prisma } from "@/lib/db"
 import { approveReturnSchema } from "@/lib/validation/returns"
 import { getDelhiveryService, getEnvPickupAddress } from "@/lib/delhivery"
@@ -8,10 +7,8 @@ import { getDelhiveryService, getEnvPickupAddress } from "@/lib/delhivery"
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id: paramId } = await params;
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.isAdmin) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const { admin, error } = await requireAdmin(request)
+    if (error) return error
 
     const id = Number(paramId)
     if (!id) return NextResponse.json({ error: "Invalid id" }, { status: 400 })
@@ -50,7 +47,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           create: {
             status: "APPROVED",
             note: note || "Return approved. Pickup initiated (placeholder)",
-            adminId: Number(session.user.id),
+            adminId: Number(admin.adminId),
           },
         },
       },
@@ -88,7 +85,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           returnRequestId: updated.id,
           status: "APPROVED",
           note: `Store credit coupon generated: ${code}`,
-          adminId: Number(session.user.id),
+          adminId: Number(admin.adminId),
         },
       })
     }

@@ -1,22 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "../../../../../lib/auth";
+import { requireAdmin } from "@/lib/admin-auth";
 import { getDelhiveryService, getEnvPickupAddress } from "../../../../../lib/delhivery";
-
-// Import the extended session type
-// import "@/types/next-auth";
 
 export async function POST(request: NextRequest) {
   try {
-    // Check admin session
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.isAdmin) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+    const { error } = await requireAdmin(request);
+    if (error) return error;
 
     // Get pickup details from environment
     const pickupAddress = getEnvPickupAddress();

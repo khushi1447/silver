@@ -4,6 +4,7 @@ import Footer from "@/components/Footer"
 import JsonLd from "@/components/JsonLd"
 import { breadcrumbSchema } from "@/lib/seo-schemas"
 import BlogCard from "@/components/BlogCard"
+import { prisma } from "@/lib/db"
 
 export const metadata: Metadata = {
   title: "Blog",
@@ -11,78 +12,46 @@ export const metadata: Metadata = {
     "Discover jewelry styling tips, fashion advice, and insights from Silver Line. Learn how to style your jewelry collection with elegance and confidence.",
   keywords: "jewelry blog, styling tips, fashion advice, jewelry care, Silver Line blog",
   alternates: { canonical: "https://www.silverline925.in/blog" },
-  openGraph: { url: "https://www.silverline925.in/blog" },
+  openGraph: {
+    title: "Jewelry Blog - Styling Tips & Insights | Silverline925",
+    description: "Discover jewelry styling tips, fashion advice, and insights from Silver Line. Learn how to style your jewelry collection with elegance and confidence.",
+    url: "https://www.silverline925.in/blog",
+    siteName: "Silverline925",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Jewelry Blog - Styling Tips & Insights | Silverline925",
+    description: "Discover jewelry styling tips, fashion advice, and insights from Silverline925. Learn how to style your jewellery collection with elegance.",
+  },
 }
 
-// Blog posts data - in a real app, this would come from a database or CMS
-const blogPosts = [
-  {
-    id: "everyday-silver-jewellery-essentials-every-woman-should-own",
-    title: "Everyday Silver Jewellery Essentials Every Woman Should Own | Silverline925",
-    excerpt:
-      "Discover the must have everyday silver jewellery essentials every woman should own. Explore sterling silver rings, earrings, chains, and bracelets perfect for daily wear.",
-    image: "/images/blog8.png",
-    date: new Date().toISOString(),
-    category: "Jewelry Guide",
-  },
-  {
-    id: "office-friendly-silver-jewellery-styling-tips",
-    title: "Office Friendly Silver Jewellery Styling Tips for a Polished Look",
-    excerpt:
-      "Discover elegant and office friendly silver jewellery styling tips to elevate your workwear. Learn how to choose subtle, professional pieces for a polished everyday look.",
-    image: "/images/blog6.png",
-    date: new Date().toISOString(),
-    category: "Styling Guide",
-  },
-  {
-    id: "how-to-measure-ring-size-at-home",
-    title: "How to Measure Ring Size at Home | Accurate Sizing Guide",
-    excerpt:
-      "Don't guess your fit. Learn how to accurately measure your ring size at home using simple tools. Perfect for shopping Silverline925 sterling silver rings.",
-    image: "/images/blog7.png",
-    date: new Date().toISOString(),
-    category: "Sizing Guide",
-  },
- 
-  {
-    id: "blog-sterling-silver-vs-pure-silver-difference",
-    title: "Sterling Silver vs Pure Silver: Key Differences, Benefits and Buying Guide",
-    excerpt:
-      "Learn the difference between sterling silver and pure silver including durability, composition, maintenance, and which is better for jewellery. Complete buying guide.",
-    image: "/images/blog5.jpeg",
-    date: new Date().toISOString(),
-    category: "Jewelry Education",
-  },
-  {
-    id: "silver-jewellery-styling-tips-for-modern-women",
-    title: "Silver Jewellery Styling Tips for Modern Women",
-    excerpt:
-      "Discover expert silver jewellery styling tips for modern women. Learn how to wear 925 sterling silver for work, casual outings, ethnic looks, and special occasions.",
-    image: "/images/blog4.png",
-    date: new Date("2026-01-28").toISOString(),
-    category: "Styling Guide",
-  },
-  {
-    id: "benefits-of-sterling-silver-vs-imitation-jewelry",
-    title: "Benefits of Investing in Pure Sterling Silver vs. Imitation Jewelry",
-    excerpt:
-      "Discover why pure sterling silver is a smarter investment than imitation jewelry. Learn about its durability, skin-friendly nature, long-term value, and timeless appeal.",
-    image: "/images/blog2.png",
-    date: new Date().toISOString(),
-    category: "Jewelry Guide",
-  },
-  {
-    id: "dos-donts-wearing-statement-jewelry",
-    title: "The Do's and Don'ts of Wearing Statement Jewelry",
-    excerpt:
-      "Learn how to wear statement jewelry with elegance. Discover the key do's and don'ts to style bold necklaces, earrings, and bracelets without overwhelming your outfit.",
-    image: "/images/blog3.png",
-    date: new Date().toISOString(),
-    category: "Jewelry Tips",
-  },
-  
-]
-export default function BlogPage() {
+// Revalidate every hour so new posts appear without full redeploy
+export const revalidate = 3600
+
+async function getBlogPosts() {
+  try {
+    return await prisma.blogPost.findMany({
+      where: { published: true },
+      orderBy: { publishedAt: "desc" },
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        excerpt: true,
+        image: true,
+        category: true,
+        publishedAt: true,
+      },
+    })
+  } catch {
+    return []
+  }
+}
+
+export default async function BlogPage() {
+  const blogPosts = await getBlogPosts()
+
   return (
     <div className="min-h-screen bg-gray-50">
       <JsonLd data={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Blog", url: "/blog" }])} />
@@ -106,7 +75,17 @@ export default function BlogPage() {
           {blogPosts.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {blogPosts.map((post) => (
-                <BlogCard key={post.id} post={post} />
+                <BlogCard
+                  key={post.id}
+                  post={{
+                    id: post.slug,
+                    title: post.title,
+                    excerpt: post.excerpt,
+                    image: post.image || "/images/blog4.png",
+                    date: post.publishedAt.toISOString(),
+                    category: post.category,
+                  }}
+                />
               ))}
             </div>
           ) : (
@@ -121,5 +100,3 @@ export default function BlogPage() {
     </div>
   )
 }
-
-

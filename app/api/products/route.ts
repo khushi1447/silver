@@ -47,7 +47,7 @@ const createProductSchema = z.object({
   weight: z.preprocess(parseDecimalFromUnknown, z.number().positive()).optional(),
   size: z.preprocess(normalizeOptionalTrimmedString, z.string().max(100)).optional(),
   availableRingSizes: z.array(z.string()).default([]),
-  images: z.array(imageSchema).min(3, "Minimum 3 images required").max(10, "Maximum 10 images allowed"),
+  images: z.array(imageSchema).min(0).max(10, "Maximum 10 images allowed"),
 });
 
 // Helper function to check admin authentication
@@ -184,7 +184,7 @@ export async function GET(request: NextRequest) {
 
     const totalPages = Math.ceil(totalCount / limit);
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       products: transformedProducts,
       pagination: {
         page,
@@ -195,6 +195,9 @@ export async function GET(request: NextRequest) {
         hasPrev: page > 1,
       },
     });
+    // Cache public product listings for 5 minutes at CDN edge
+    response.headers.set("Cache-Control", "public, s-maxage=300, stale-while-revalidate=600");
+    return response;
   } catch (error) {
     console.error("Error fetching products:", error);
     return NextResponse.json(

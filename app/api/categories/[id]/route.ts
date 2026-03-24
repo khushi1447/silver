@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/db";
-import { authOptions } from "@/lib/auth";
+import { requireAdmin } from "@/lib/admin-auth";
 import { z } from "zod";
 
 // Validation schema for updating categories
@@ -103,24 +102,18 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.isAdmin) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-    
+    const { error } = await requireAdmin(request);
+    if (error) return error;
+
     const categoryId = parseInt(id);
-    
+
     if (isNaN(categoryId)) {
       return NextResponse.json(
         { error: "Invalid category ID" },
         { status: 400 }
       );
     }
-    
+
     const body = await request.json();
     const validatedData = updateCategorySchema.parse(body);
     
@@ -182,24 +175,18 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.isAdmin) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-    
+    const { error } = await requireAdmin(request);
+    if (error) return error;
+
     const categoryId = parseInt(id);
-    
+
     if (isNaN(categoryId)) {
       return NextResponse.json(
         { error: "Invalid category ID" },
         { status: 400 }
       );
     }
-    
+
     // Check if category exists
     const existingCategory = await prisma.category.findUnique({
       where: { id: categoryId },

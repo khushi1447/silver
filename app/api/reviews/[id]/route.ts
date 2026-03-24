@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/db";
 import { authOptions } from "@/lib/auth";
+import { requireAdmin } from "@/lib/admin-auth";
 import { z } from "zod";
 
 // Validation schema for updating reviews
@@ -89,27 +90,21 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-    
+    const { admin } = await requireAdmin(request).catch(() => ({ admin: null })) as { admin: any };
+    const session = admin ? null : await getServerSession(authOptions);
+
     const reviewId = parseInt(id);
-    
+
     if (isNaN(reviewId)) {
       return NextResponse.json(
         { error: "Invalid review ID" },
         { status: 400 }
       );
     }
-    
+
     const body = await request.json();
     const validatedData = updateReviewSchema.parse(body);
-    
+
     // Get existing review
     const existingReview = await prisma.review.findUnique({
       where: { id: reviewId },
@@ -123,17 +118,17 @@ export async function PUT(
         },
       },
     });
-    
+
     if (!existingReview) {
       return NextResponse.json(
         { error: "Review not found" },
         { status: 404 }
       );
     }
-    
-    const userId = parseInt(session.user.id);
-    const isAdmin = session.user.isAdmin || false;
-    
+
+    const isAdmin = !!admin || session?.user?.isAdmin || false;
+    const userId = session?.user?.id ? parseInt(session.user.id) : null;
+
     // Check if user can update this review
     if (!isAdmin && existingReview.userId !== userId) {
       return NextResponse.json(
@@ -141,7 +136,7 @@ export async function PUT(
         { status: 401 }
       );
     }
-    
+
     // Only admins can update approval status and admin reply
     if (!isAdmin) {
       delete validatedData.isApproved;
@@ -212,39 +207,33 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-    
+    const { admin } = await requireAdmin(request).catch(() => ({ admin: null })) as { admin: any };
+    const session = admin ? null : await getServerSession(authOptions);
+
     const reviewId = parseInt(id);
-    
+
     if (isNaN(reviewId)) {
       return NextResponse.json(
         { error: "Invalid review ID" },
         { status: 400 }
       );
     }
-    
+
     // Get existing review
     const existingReview = await prisma.review.findUnique({
       where: { id: reviewId },
     });
-    
+
     if (!existingReview) {
       return NextResponse.json(
         { error: "Review not found" },
         { status: 404 }
       );
     }
-    
-    const userId = parseInt(session.user.id);
-    const isAdmin = session.user.isAdmin || false;
-    
+
+    const isAdmin = !!admin || session?.user?.isAdmin || false;
+    const userId = session?.user?.id ? parseInt(session.user.id) : null;
+
     // Check if user can delete this review
     if (!isAdmin && existingReview.userId !== userId) {
       return NextResponse.json(

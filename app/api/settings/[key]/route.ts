@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/db";
-import { authOptions } from "@/lib/auth";
+import { requireAdmin } from "@/lib/admin-auth";
 import { z } from "zod";
 
 // Validation schema for updating settings
@@ -18,25 +17,22 @@ export async function GET(
 ) {
   try {
     const { key: settingKey } = await params;
-    const session = await getServerSession(authOptions);
-    
+
     const setting = await prisma.setting.findUnique({
       where: { key: settingKey },
     });
-    
+
     if (!setting) {
       return NextResponse.json(
         { error: "Setting not found" },
         { status: 404 }
       );
     }
-    
+
     // Check if user can access this setting
-    if (!setting.isPublic && !session?.user?.isAdmin) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+    if (!setting.isPublic) {
+      const { error } = await requireAdmin(request);
+      if (error) return error;
     }
     
     return NextResponse.json({
@@ -65,14 +61,9 @@ export async function PUT(
 ) {
   try {
     const { key: settingKey } = await params;
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.isAdmin) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+    const { error } = await requireAdmin(request);
+    if (error) return error;
+
     const body = await request.json();
     const validatedData = updateSettingSchema.parse(body);
     
@@ -127,15 +118,9 @@ export async function DELETE(
 ) {
   try {
     const { key: settingKey } = await params;
-    const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.isAdmin) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-    
+    const { error } = await requireAdmin(request);
+    if (error) return error;
+
     // Check if setting exists
     const existingSetting = await prisma.setting.findUnique({
       where: { key: settingKey },

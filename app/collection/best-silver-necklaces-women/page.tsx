@@ -17,8 +17,13 @@ export const metadata: Metadata = {
     description:
       "Explore the best silver necklaces for women with premium designs and everyday wear styles. Find perfect pieces for any occasion at Silverline925",
     url: "https://www.silverline925.in/collection/best-silver-necklaces-women",
-    siteName: "Silver Line",
+    siteName: "Silverline925",
     type: "article",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Buy Best Silver Necklaces for Women - Trendy Styles at Silverline925",
+    description: "Explore the best silver necklaces for women with premium designs and everyday wear styles. Find perfect pieces for any occasion at Silverline925.",
   },
 }
 

@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     description:
       "Discover expert silver jewellery styling tips for modern women. Learn how to wear 925 sterling silver for work, casual outings, ethnic looks, and special occasions. Shop elegant silver jewellery online at silverline925.",
     url: "https://www.silverline925.in/blog/silver-jewellery-styling-tips-for-modern-women",
-    siteName: "Silver Line",
+    siteName: "Silverline925",
     type: "article",
     images: [
       {

@@ -17,8 +17,13 @@ export const metadata: Metadata = {
     description:
       "Shop the best men's sterling silver bracelets featuring strong, stylish handcrafted designs. Perfect for everyday use at Best Price at Silverline925.",
     url: "https://www.silverline925.in/collection/mens-sterling-silver-bracelets",
-    siteName: "Silver Line",
+    siteName: "Silverline925",
     type: "article",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Buy Best Mens Sterling Silver Bracelets - Explore Stylish Designs",
+    description: "Shop the best men's sterling silver bracelets featuring strong, stylish handcrafted designs. Perfect for everyday use at Silverline925.",
   },
 }
 

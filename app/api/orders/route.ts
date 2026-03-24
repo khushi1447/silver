@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../lib/auth";
+import { requireAdmin } from "@/lib/admin-auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
 
@@ -45,18 +46,21 @@ const createOrderSchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
     const { searchParams } = new URL(request.url);
-    
+
     // Pagination parameters
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
     const offset = (page - 1) * limit;
-    
+
     // Filter parameters
     const status = searchParams.get("status");
-    const isAdmin = session?.user?.isAdmin || false;
-    
+
+    // Check admin JWT first, then fall back to NextAuth session
+    const { admin } = await requireAdmin(request).catch(() => ({ admin: null })) as { admin: any };
+    const session = admin ? null : await getServerSession(authOptions);
+    const isAdmin = !!admin || session?.user?.isAdmin || false;
+
     if (!session?.user?.id && !isAdmin) {
       return NextResponse.json(
         { error: "Unauthorized" },
