@@ -49,6 +49,7 @@ async function verifyAdminToken(token: string, secret: string): Promise<boolean>
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const nextAuthSecret = process.env.NEXTAUTH_SECRET;
 
   // ── Admin routes ──────────────────────────────────────────────
   if (pathname.startsWith('/admin')) {
@@ -68,7 +69,7 @@ export async function middleware(request: NextRequest) {
       if (valid) return NextResponse.next();
     }
 
-    const nextAuthToken = await getToken({ req: request });
+    const nextAuthToken = await getToken({ req: request, secret: nextAuthSecret });
     if (nextAuthToken?.isAdmin) {
       return NextResponse.next();
     }
@@ -85,10 +86,10 @@ export async function middleware(request: NextRequest) {
   );
 
   if (isProtectedUserRoute) {
-    const token = await getToken({ req: request });
+    const token = await getToken({ req: request, secret: nextAuthSecret });
     if (!token) {
       const loginUrl = new URL('/login', request.url);
-      loginUrl.searchParams.set('callbackUrl', pathname);
+      loginUrl.searchParams.set('callbackUrl', pathname + request.nextUrl.search);
       return NextResponse.redirect(loginUrl);
     }
   }

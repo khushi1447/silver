@@ -5,6 +5,7 @@ import { prisma } from "./db"
 
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
+  trustHost: true,
   providers: [
     CredentialsProvider({
       name: "credentials",
@@ -78,6 +79,4 @@ export const authOptions: NextAuthOptions = {
   },
 }
 
-const handler = NextAuth(authOptions)
-
-export { handler as GET, handler as POST }
+export const handler = NextAuth(authOptions)

@@ -1,2 +1,3 @@
-import { authOptions } from "../../../../lib/auth"
-export { GET, POST } from "../../../../lib/auth" 
+import { handler } from "@/lib/auth"
+
+export { handler as GET, handler as POST }
