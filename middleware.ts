@@ -49,34 +49,30 @@ async function verifyAdminToken(token: string, secret: string): Promise<boolean>
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const jwtSecret = process.env.JWT_SECRET;
-  if (!jwtSecret) {
-    // JWT_SECRET not configured — deny all admin access
-    const loginUrl = new URL('/admin/login', request.url);
-    return NextResponse.redirect(loginUrl);
-  }
 
   // ── Admin routes ──────────────────────────────────────────────
   if (pathname.startsWith('/admin')) {
-    // Always allow admin login page
     if (pathname === '/admin/login') {
       return NextResponse.next();
     }
 
-    // 1. Check admin-token (custom JWT set by /api/admin/login)
+    const jwtSecret = process.env.JWT_SECRET;
+    if (!jwtSecret) {
+      const loginUrl = new URL('/admin/login', request.url);
+      return NextResponse.redirect(loginUrl);
+    }
+
     const adminToken = request.cookies.get('admin-token')?.value;
     if (adminToken) {
       const valid = await verifyAdminToken(adminToken, jwtSecret);
       if (valid) return NextResponse.next();
     }
 
-    // 2. Fallback: check NextAuth JWT (in case admin signed in via NextAuth)
     const nextAuthToken = await getToken({ req: request });
     if (nextAuthToken?.isAdmin) {
       return NextResponse.next();
     }
 
-    // Not authenticated as admin → redirect to admin login
     const loginUrl = new URL('/admin/login', request.url);
     loginUrl.searchParams.set('callbackUrl', pathname);
     return NextResponse.redirect(loginUrl);
