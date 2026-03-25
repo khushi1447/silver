@@ -14,7 +14,7 @@ const DELHIVERY_ENDPOINTS = {
   CANCEL_PACKAGE: '/api/p/edit',
   GET_SERVICES: '/api/kinko/v1/invoice/services', // not currently used for serviceability
   CREATE_WAREHOUSE: '/fm/request/new/',
-  PINCODE_SERVICEABILITY: '/c/api/pin-code', // inferred common endpoint (may vary by account tier)
+  PINCODE_SERVICEABILITY: '/c/api/pin-code/json/', // production pincode serviceability endpoint
 }
 
 // Types for Delhivery API
@@ -176,7 +176,7 @@ export class DelhiveryService {
   private baseURL: string
 
   // Cache for serviceability lookups to cut down API calls
-  private serviceabilityCache: Map<string, { serviceable: boolean; lastChecked: number }> = new Map()
+  private serviceabilityCache: Map<string, { serviceable: boolean; estimatedDays: number | null; lastChecked: number }> = new Map()
 
   constructor() {
     // Read from process.env directly to support runtime loading (e.g., in test scripts with dotenv)
@@ -327,24 +327,36 @@ export class DelhiveryService {
    * Check serviceability for a destination PIN code.
    * Falls back to optimistic true if endpoint not available or errors (to avoid blocking orders).
    */
-  async checkServiceability(pin: string): Promise<boolean> {
+  async checkServiceability(pin: string): Promise<{ serviceable: boolean; estimatedDays: number | null }> {
     const cached = this.serviceabilityCache.get(pin)
     const now = Date.now()
-    if (cached && (now - cached.lastChecked) < 1000 * 60 * 30) { // 30 min cache
-      return cached.serviceable
+    if (cached && (now - cached.lastChecked) < 1000 * 60 * 30) {
+      return { serviceable: cached.serviceable, estimatedDays: cached.estimatedDays }
     }
     try {
-      const url = `${DELHIVERY_ENDPOINTS.PINCODE_SERVICEABILITY}?pin=${encodeURIComponent(pin)}`
-      const response: any = await this.makeRequest<any>(url, 'GET')
-      // Normalization heuristic
-      const serviceable = !!(response?.delivery_code?.length || response?.success || response?.Serviceable || response?.serviceable)
-      this.serviceabilityCache.set(pin, { serviceable, lastChecked: now })
-      return serviceable
+      const trackBaseUrl = 'https://track.delhivery.com'
+      const url = `${trackBaseUrl}${DELHIVERY_ENDPOINTS.PINCODE_SERVICEABILITY}?filter_codes=${encodeURIComponent(pin)}`
+      const response = await axios.get(url, {
+        headers: { 'Authorization': `Token ${this.apiKey}`, 'Accept': 'application/json' },
+        timeout: 10000,
+      })
+
+      const data = response.data
+      const codes = data?.delivery_codes || []
+      if (codes.length > 0) {
+        const info = codes[0]?.postal_code || {}
+        const isServiceable = info.pre_paid === 'Y' || info.cod === 'Y' || info.pickup === 'Y'
+        const estimatedDays = info.max_amount ? null : (info.covid_zone ? 7 : 5)
+        this.serviceabilityCache.set(pin, { serviceable: isServiceable, estimatedDays, lastChecked: now })
+        return { serviceable: isServiceable, estimatedDays }
+      }
+
+      this.serviceabilityCache.set(pin, { serviceable: false, estimatedDays: null, lastChecked: now })
+      return { serviceable: false, estimatedDays: null }
     } catch (e) {
       logger.warn('delhivery.serviceability.check.failed', { pin, error: (e as Error).message })
-      // Fail-open: assume serviceable, caller can still rely on createShipment serviceable flag
-      this.serviceabilityCache.set(pin, { serviceable: true, lastChecked: now })
-      return true
+      this.serviceabilityCache.set(pin, { serviceable: true, estimatedDays: 5, lastChecked: now })
+      return { serviceable: true, estimatedDays: 5 }
     }
   }
 

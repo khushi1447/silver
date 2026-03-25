@@ -264,24 +264,28 @@ export async function createOrderAction(orderData: any) {
         })
       )
 
-      // Update product stock
-      await Promise.all(
-        cartItems.map(async (item) => {
-          return tx.product.update({
-            where: { id: item.productId },
-            data: {
-              stock: {
-                decrement: item.quantity,
-              },
-            },
-          })
-        })
-      )
+      // Razorpay: cart + stock are applied only after successful payment (see processPayment).
+      // COD: reserve stock and clear cart immediately.
+      const isRazorpay = orderData.paymentMethod === "razorpay"
 
-      // Clear user's cart
-      await tx.cartItem.deleteMany({
-        where: { userId },
-      })
+      if (!isRazorpay) {
+        await Promise.all(
+          cartItems.map(async (item) => {
+            return tx.product.update({
+              where: { id: item.productId },
+              data: {
+                stock: {
+                  decrement: item.quantity,
+                },
+              },
+            })
+          })
+        )
+
+        await tx.cartItem.deleteMany({
+          where: { userId },
+        })
+      }
 
       // Create payment record for COD orders
       if (orderData.paymentMethod === 'cod') {

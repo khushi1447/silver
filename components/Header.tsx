@@ -4,10 +4,17 @@ import Link from "next/link";
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { ShoppingBag, Menu, X, Search, Heart, LogOut, User, ChevronDown, ChevronRight } from "lucide-react";
+import { ShoppingBag, Menu, X, Search, Heart, LogOut, User, ChevronDown, ChevronRight, Package } from "lucide-react";
 import { useUnifiedCart } from "@/hooks/useUnifiedCart";
 import { useUnifiedWishlist } from "@/hooks/useUnifiedWishlist";
 import { useAuth } from "@/hooks/useAuth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export default function Header() {
   const router = useRouter();
@@ -339,25 +346,58 @@ export default function Header() {
               )}
             </Link>
 
-            {/* Auth button - Login or Logout - Desktop only */}
+            {/* Auth: account menu or login - All screens */}
             {isAuthenticated ? (
-              <button
-                onClick={async () => {
-                  await signOut({ redirect: false });
-                  router.push("/");
-                }}
-                className="hidden md:flex p-2 text-gray-700 hover:text-red-600 transition-colors hover:bg-red-50 rounded-full"
-                title="Logout"
-              >
-                <LogOut className="w-5 h-5" />
-              </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="p-1.5 sm:p-2 text-gray-700 hover:text-purple-600 transition-colors hover:bg-purple-50 rounded-full"
+                    title="Account"
+                    aria-label="Account menu"
+                  >
+                    <User className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile" className="cursor-pointer">
+                      <User className="mr-2 h-4 w-4" />
+                      My account
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/orders" className="cursor-pointer">
+                      <Package className="mr-2 h-4 w-4" />
+                      Orders
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/wishlist" className="cursor-pointer">
+                      <Heart className="mr-2 h-4 w-4" />
+                      Wishlist
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="text-red-600 focus:text-red-600 cursor-pointer"
+                    onClick={async () => {
+                      await signOut({ redirect: false });
+                      router.push("/");
+                    }}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Log out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <Link
                 href="/login"
-                className="hidden md:flex p-2 text-gray-700 hover:text-purple-600 transition-colors hover:bg-purple-50 rounded-full"
+                className="p-1.5 sm:p-2 text-gray-700 hover:text-purple-600 transition-colors hover:bg-purple-50 rounded-full"
                 title="Login"
               >
-                <User className="w-5 h-5" />
+                <User className="w-4 h-4 sm:w-5 sm:h-5" />
               </Link>
             )}
 
@@ -477,20 +517,39 @@ export default function Header() {
                 );
               })}
 
-              {/* Mobile Auth button */}
-              <div className="border-t border-gray-100 pt-3 sm:pt-4 mt-2">
+              {/* Mobile account + auth */}
+              <div className="border-t border-gray-100 pt-3 sm:pt-4 mt-2 space-y-1">
                 {isAuthenticated ? (
-                  <button
-                    onClick={async () => {
-                      setIsMenuOpen(false);
-                      await signOut({ redirect: false });
-                      router.push("/");
-                    }}
-                    className="flex items-center gap-2 text-red-600 hover:text-red-700 transition-colors duration-200 font-medium px-3 sm:px-4 py-2 hover:bg-red-50 rounded-lg w-full text-sm sm:text-base"
-                  >
-                    <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
-                    Logout
-                  </button>
+                  <>
+                    <Link
+                      href="/profile"
+                      className="flex items-center gap-2 text-gray-700 hover:text-purple-600 font-medium px-3 sm:px-4 py-2 hover:bg-purple-50 rounded-lg text-sm sm:text-base"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <User className="w-4 h-4 sm:w-5 sm:h-5" />
+                      My account
+                    </Link>
+                    <Link
+                      href="/orders"
+                      className="flex items-center gap-2 text-gray-700 hover:text-purple-600 font-medium px-3 sm:px-4 py-2 hover:bg-purple-50 rounded-lg text-sm sm:text-base"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <Package className="w-4 h-4 sm:w-5 sm:h-5" />
+                      Orders
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        setIsMenuOpen(false);
+                        await signOut({ redirect: false });
+                        router.push("/");
+                      }}
+                      className="flex items-center gap-2 text-red-600 hover:text-red-700 transition-colors duration-200 font-medium px-3 sm:px-4 py-2 hover:bg-red-50 rounded-lg w-full text-sm sm:text-base"
+                    >
+                      <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
+                      Log out
+                    </button>
+                  </>
                 ) : (
                   <Link
                     href="/login"

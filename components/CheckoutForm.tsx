@@ -2,13 +2,29 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useUnifiedCart } from "@/hooks/useUnifiedCart"
 import { useAuth } from "@/hooks/useAuth"
 import { createOrderAction } from "@/lib/actions"
-import { CreditCard, Loader2, Wallet, Truck, CheckCircle2, Info } from "lucide-react"
+import { CreditCard, Loader2, Wallet, Truck, CheckCircle2, Info, MapPin, XCircle, Plus, X, Check } from "lucide-react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import RazorpayCheckout from './RazorpayCheckout'
+
+type SavedAddress = {
+  id: number
+  type: string
+  firstName: string
+  lastName: string
+  address1: string
+  address2?: string | null
+  city: string
+  state: string
+  postalCode: string
+  country: string
+  phone?: string | null
+  isDefault: boolean
+}
 
 export default function CheckoutForm() {
   const { cart, loading: cartLoading, hasMerged, isMerging, isAuthenticated: cartAuthenticated } = useUnifiedCart()
@@ -17,6 +33,16 @@ export default function CheckoutForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [orderCreated, setOrderCreated] = useState<any>(null)
+  const [profileLoading, setProfileLoading] = useState(false)
+  const [saveAddressToProfile, setSaveAddressToProfile] = useState(true)
+
+  const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([])
+  const [selectedAddressId, setSelectedAddressId] = useState<number | "new" | null>(null)
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [addingSavedAddress, setAddingSavedAddress] = useState(false)
+  const [newAddr, setNewAddr] = useState({
+    firstName: "", lastName: "", address1: "", address2: "", city: "", state: "", postalCode: "", phone: "",
+  })
 
   const [formData, setFormData] = useState({
     name: user ? `${user.firstName} ${user.lastName}` : "",
@@ -29,11 +55,145 @@ export default function CheckoutForm() {
     paymentMethod: "razorpay",
   })
 
+  const applyAddress = useCallback((addr: SavedAddress) => {
+    setFormData((prev) => ({
+      ...prev,
+      name: `${addr.firstName} ${addr.lastName}`.trim() || prev.name,
+      phone: addr.phone?.trim() || prev.phone,
+      address: [addr.address1, addr.address2].filter(Boolean).join(", "),
+      city: addr.city,
+      state: addr.state,
+      zipCode: addr.postalCode,
+    }))
+    setSelectedAddressId(addr.id)
+    setSaveAddressToProfile(false)
+  }, [])
+
+  const loadAddresses = useCallback(async () => {
+    try {
+      const res = await fetch("/api/addresses", { credentials: "include" })
+      if (res.ok) {
+        const data = await res.json()
+        setSavedAddresses(Array.isArray(data) ? data : [])
+        return Array.isArray(data) ? data : []
+      }
+    } catch { /* ignore */ }
+    return []
+  }, [])
+
+  useEffect(() => {
+    if (!isAuthenticated) return
+
+    let cancelled = false
+    setProfileLoading(true)
+
+    const load = async () => {
+      try {
+        const [meRes, addresses] = await Promise.all([
+          fetch("/api/users/me", { credentials: "include" }),
+          loadAddresses(),
+        ])
+
+        if (!meRes.ok || cancelled) return
+        const me = await meRes.json()
+
+        const pick =
+          addresses.find((a: SavedAddress) => a.isDefault && (a.type === "SHIPPING" || a.type === "BOTH")) ||
+          addresses.find((a: SavedAddress) => a.type === "SHIPPING" || a.type === "BOTH") ||
+          addresses[0]
+
+        const fullNameFromProfile =
+          me.firstName || me.lastName
+            ? `${me.firstName || ""} ${me.lastName || ""}`.trim()
+            : ""
+
+        const phone =
+          (typeof me.phone === "string" && me.phone.trim()) ||
+          (pick?.phone && String(pick.phone).trim()) ||
+          ""
+
+        setFormData((prev) => ({
+          ...prev,
+          name: fullNameFromProfile || prev.name,
+          email: (me.email as string) || prev.email,
+          phone: phone || prev.phone,
+          ...(pick && {
+            address: [pick.address1, pick.address2].filter(Boolean).join(", "),
+            city: pick.city,
+            state: pick.state,
+            zipCode: pick.postalCode,
+          }),
+        }))
+
+        if (pick) {
+          setSelectedAddressId(pick.id)
+          setSaveAddressToProfile(false)
+        }
+      } catch {
+        // keep manual entry
+      } finally {
+        if (!cancelled) setProfileLoading(false)
+      }
+    }
+
+    void load()
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated])
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     })
+  }
+
+  async function syncProfileAndAddressAfterOrder() {
+    try {
+      await fetch("/api/users/me", {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phone: formData.phone.trim() || undefined,
+        }),
+      })
+    } catch {
+      /* non-blocking */
+    }
+
+    if (!saveAddressToProfile) return
+
+    try {
+      const listRes = await fetch("/api/addresses", { credentials: "include" })
+      const existing = listRes.ok ? await listRes.json() : []
+      const isFirst = !Array.isArray(existing) || existing.length === 0
+      const parts = formData.name.trim().split(/\s+/).filter(Boolean)
+      const firstName = parts[0] || "Customer"
+      const lastName = parts.slice(1).join(" ") || "."
+
+      await fetch("/api/addresses", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "BOTH",
+          firstName,
+          lastName,
+          address1: formData.address.trim(),
+          city: formData.city.trim(),
+          state: formData.state.trim(),
+          postalCode: formData.zipCode.trim(),
+          country: "IN",
+          phone: formData.phone.trim() || undefined,
+          isDefault: isFirst,
+        }),
+      })
+    } catch {
+      /* non-blocking — order already created */
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -87,7 +247,13 @@ export default function CheckoutForm() {
       const result = await createOrderAction(orderData)
 
       if (result.success) {
-        // Store order details for payment processing
+        await syncProfileAndAddressAfterOrder()
+
+        if (formData.paymentMethod === "cod") {
+          router.push(`/order-confirmation?orderId=${result.orderId}`)
+          return
+        }
+
         setOrderCreated({
           id: result.orderId,
           total: cart.total,
@@ -108,14 +274,53 @@ export default function CheckoutForm() {
   }
 
   const handlePaymentSuccess = () => {
-    // Clear cart and redirect to order confirmation
-    router.push(`/orders/${orderCreated.id}`)
+    router.push(`/order-confirmation?orderId=${orderCreated.id}`)
   }
 
-  const handlePaymentError = (error: string) => {
-    setError(error)
-    setOrderCreated(null) // Allow user to try again
+  const handlePaymentError = (message: string) => {
+    setError(message)
+    // Keep orderCreated so user can retry Razorpay without placing a duplicate order.
+    // Cart is only cleared after successful payment verification.
   }
+
+  const [pincodeCheck, setPincodeCheck] = useState<{
+    loading: boolean
+    serviceable: boolean | null
+    estimatedDays: number | null
+    estimatedDate: string | null
+    checked: boolean
+  }>({ loading: false, serviceable: null, estimatedDays: null, estimatedDate: null, checked: false })
+
+  const checkPincode = async (pin: string) => {
+    if (!/^\d{6}$/.test(pin)) {
+      setPincodeCheck({ loading: false, serviceable: null, estimatedDays: null, estimatedDate: null, checked: false })
+      return
+    }
+    setPincodeCheck(prev => ({ ...prev, loading: true }))
+    try {
+      const res = await fetch(`/api/pincode/check?pin=${pin}`)
+      const data = await res.json()
+      setPincodeCheck({
+        loading: false,
+        serviceable: data.serviceable,
+        estimatedDays: data.estimatedDays,
+        estimatedDate: data.estimatedDate,
+        checked: true,
+      })
+    } catch {
+      setPincodeCheck({ loading: false, serviceable: true, estimatedDays: 5, estimatedDate: null, checked: true })
+    }
+  }
+
+  useEffect(() => {
+    const pin = formData.zipCode.trim()
+    if (pin.length === 6) {
+      const t = setTimeout(() => checkPincode(pin), 500)
+      return () => clearTimeout(t)
+    } else {
+      setPincodeCheck({ loading: false, serviceable: null, estimatedDays: null, estimatedDate: null, checked: false })
+    }
+  }, [formData.zipCode])
 
   const total = cart ? cart.total : 0
 
@@ -170,48 +375,318 @@ export default function CheckoutForm() {
 
           {/* Shipping Address */}
           <div className="bg-white rounded-lg p-6 shadow-sm">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Shipping Address</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-gray-900">Shipping Address</h2>
+              {savedAddresses.length > 0 && selectedAddressId !== "new" && (
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(true)}
+                  className="inline-flex items-center gap-1.5 text-sm font-medium text-purple-600 hover:text-purple-700 transition-colors"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add new
+                </button>
+              )}
+            </div>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Address *</label>
-                <textarea
-                  name="address"
-                  required
-                  rows={3}
-                  value={formData.address}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent"
-                />
+            {/* Saved address cards */}
+            {savedAddresses.length > 0 && (
+              <div className="space-y-2 mb-4">
+                {savedAddresses.map((addr) => (
+                  <button
+                    key={addr.id}
+                    type="button"
+                    onClick={() => applyAddress(addr)}
+                    className={`w-full text-left p-3 rounded-lg border-2 transition-all ${
+                      selectedAddressId === addr.id
+                        ? "border-purple-500 bg-purple-50/60"
+                        : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-sm text-gray-900">
+                            {addr.firstName} {addr.lastName}
+                          </span>
+                          {addr.isDefault && (
+                            <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 text-[10px] font-semibold rounded uppercase">
+                              Default
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-600 mt-0.5 truncate">
+                          {addr.address1}{addr.address2 ? `, ${addr.address2}` : ""}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {addr.city}, {addr.state} — {addr.postalCode}
+                        </p>
+                        {addr.phone && (
+                          <p className="text-xs text-gray-400 mt-0.5">{addr.phone}</p>
+                        )}
+                      </div>
+                      {selectedAddressId === addr.id && (
+                        <Check className="h-5 w-5 text-purple-600 flex-shrink-0 mt-0.5" />
+                      )}
+                    </div>
+                  </button>
+                ))}
+
+                {/* Use a different address */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedAddressId("new")
+                    setSaveAddressToProfile(true)
+                    setFormData(prev => ({ ...prev, address: "", city: "", state: "", zipCode: "" }))
+                  }}
+                  className={`w-full text-left p-3 rounded-lg border-2 transition-all ${
+                    selectedAddressId === "new"
+                      ? "border-purple-500 bg-purple-50/60"
+                      : "border-dashed border-gray-300 hover:border-gray-400 hover:bg-gray-50"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 text-sm">
+                    <MapPin className="h-4 w-4 text-gray-500" />
+                    <span className={selectedAddressId === "new" ? "font-medium text-purple-700" : "text-gray-600"}>
+                      Enter a different address
+                    </span>
+                  </div>
+                </button>
               </div>
+            )}
 
-              <div className="grid grid-cols-2 gap-4">
+            {/* Manual address form — shown when no saved addresses or "new" is selected */}
+            {(savedAddresses.length === 0 || selectedAddressId === "new") && (
+              <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">City *</label>
-                  <input
-                    type="text"
-                    name="city"
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Address *</label>
+                  <textarea
+                    name="address"
                     required
-                    value={formData.city}
+                    rows={3}
+                    value={formData.address}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">ZIP Code *</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">State *</label>
                   <input
                     type="text"
-                    name="zipCode"
+                    name="state"
                     required
-                    value={formData.zipCode}
+                    placeholder="e.g. Gujarat"
+                    value={formData.state}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent"
                   />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">City *</label>
+                    <input
+                      type="text"
+                      name="city"
+                      required
+                      value={formData.city}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">PIN Code *</label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        name="zipCode"
+                        required
+                        maxLength={6}
+                        value={formData.zipCode}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent pr-10"
+                      />
+                      {pincodeCheck.loading && (
+                        <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-gray-400" />
+                      )}
+                      {!pincodeCheck.loading && pincodeCheck.checked && pincodeCheck.serviceable && (
+                        <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />
+                      )}
+                      {!pincodeCheck.loading && pincodeCheck.checked && pincodeCheck.serviceable === false && (
+                        <XCircle className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-red-500" />
+                      )}
+                    </div>
+                    {pincodeCheck.checked && (
+                      <div className={`mt-1.5 text-xs flex items-center gap-1.5 ${pincodeCheck.serviceable ? "text-green-600" : "text-red-600"}`}>
+                        <MapPin className="h-3 w-3" />
+                        {pincodeCheck.serviceable ? (
+                          <span>Delivery available{pincodeCheck.estimatedDays ? ` — Est. ${pincodeCheck.estimatedDays}-${pincodeCheck.estimatedDays + 2} days` : ""}</span>
+                        ) : (
+                          <span>Delivery not available to this PIN code</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <label className="flex items-start gap-3 cursor-pointer rounded-lg border border-gray-200 bg-gray-50/80 p-3 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={saveAddressToProfile}
+                    onChange={(e) => setSaveAddressToProfile(e.target.checked)}
+                    className="mt-0.5 h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                  />
+                  <span className="text-gray-700">
+                    <span className="font-medium text-gray-900">Save to my account</span>
+                    <span className="block text-gray-600 mt-0.5">
+                      Store this address for faster checkout next time.
+                    </span>
+                  </span>
+                </label>
+              </div>
+            )}
+
+            {/* Pincode check for saved address */}
+            {savedAddresses.length > 0 && selectedAddressId !== "new" && pincodeCheck.checked && (
+              <div className={`mt-3 text-xs flex items-center gap-1.5 ${pincodeCheck.serviceable ? "text-green-600" : "text-red-600"}`}>
+                <MapPin className="h-3 w-3" />
+                {pincodeCheck.serviceable ? (
+                  <span>Delivery available to {formData.zipCode}{pincodeCheck.estimatedDays ? ` — Est. ${pincodeCheck.estimatedDays}-${pincodeCheck.estimatedDays + 2} days` : ""}</span>
+                ) : (
+                  <span>Delivery not available to PIN {formData.zipCode}</span>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Add New Address Modal */}
+          {showAddModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <div className="fixed inset-0 bg-black/50" onClick={() => setShowAddModal(false)} />
+              <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto p-6">
+                <div className="flex items-center justify-between mb-5">
+                  <h3 className="text-lg font-bold text-gray-900">Add New Address</h3>
+                  <button type="button" onClick={() => setShowAddModal(false)} className="p-1 hover:bg-gray-100 rounded-full transition-colors">
+                    <X className="h-5 w-5 text-gray-500" />
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
+                      <input type="text" value={newAddr.firstName} onChange={(e) => setNewAddr(p => ({ ...p, firstName: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
+                      <input type="text" value={newAddr.lastName} onChange={(e) => setNewAddr(p => ({ ...p, lastName: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Address Line 1 *</label>
+                    <input type="text" value={newAddr.address1} onChange={(e) => setNewAddr(p => ({ ...p, address1: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent" />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Address Line 2</label>
+                    <input type="text" value={newAddr.address2} onChange={(e) => setNewAddr(p => ({ ...p, address2: e.target.value }))}
+                      placeholder="Apartment, suite, etc. (optional)"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent" />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">State *</label>
+                    <input type="text" value={newAddr.state} onChange={(e) => setNewAddr(p => ({ ...p, state: e.target.value }))}
+                      placeholder="e.g. Gujarat"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent" />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">City *</label>
+                      <input type="text" value={newAddr.city} onChange={(e) => setNewAddr(p => ({ ...p, city: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">PIN Code *</label>
+                      <input type="text" maxLength={6} value={newAddr.postalCode} onChange={(e) => setNewAddr(p => ({ ...p, postalCode: e.target.value }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                    <input type="tel" value={newAddr.phone} onChange={(e) => setNewAddr(p => ({ ...p, phone: e.target.value }))}
+                      placeholder="10-digit mobile number"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent" />
+                  </div>
+                </div>
+
+                <div className="flex gap-3 mt-6">
+                  <button
+                    type="button"
+                    disabled={addingSavedAddress}
+                    onClick={async () => {
+                      if (!newAddr.firstName.trim() || !newAddr.address1.trim() || !newAddr.city.trim() || !newAddr.state.trim() || !newAddr.postalCode.trim()) {
+                        alert("Please fill in all required fields")
+                        return
+                      }
+                      setAddingSavedAddress(true)
+                      try {
+                        const res = await fetch("/api/addresses", {
+                          method: "POST",
+                          credentials: "include",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            type: "BOTH",
+                            firstName: newAddr.firstName.trim(),
+                            lastName: newAddr.lastName.trim() || ".",
+                            address1: newAddr.address1.trim(),
+                            address2: newAddr.address2.trim() || undefined,
+                            city: newAddr.city.trim(),
+                            state: newAddr.state.trim(),
+                            postalCode: newAddr.postalCode.trim(),
+                            country: "IN",
+                            phone: newAddr.phone.trim() || undefined,
+                            isDefault: savedAddresses.length === 0,
+                          }),
+                        })
+                        if (!res.ok) throw new Error("Failed to save address")
+                        const created = await res.json()
+                        const refreshed = await loadAddresses()
+                        const match = refreshed.find((a: SavedAddress) => a.id === created.id) || refreshed[refreshed.length - 1]
+                        if (match) applyAddress(match)
+                        setShowAddModal(false)
+                        setNewAddr({ firstName: "", lastName: "", address1: "", address2: "", city: "", state: "", postalCode: "", phone: "" })
+                      } catch {
+                        alert("Failed to save address. Please try again.")
+                      } finally {
+                        setAddingSavedAddress(false)
+                      }
+                    }}
+                    className="flex-1 bg-purple-600 text-white py-2.5 px-4 rounded-lg text-sm font-semibold hover:bg-purple-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {addingSavedAddress ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                    {addingSavedAddress ? "Saving..." : "Save & Use"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddModal(false)}
+                    className="px-4 py-2.5 rounded-lg border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
                 </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Payment Method */}
           <div className="bg-white rounded-lg p-6 shadow-sm">
@@ -287,10 +762,12 @@ export default function CheckoutForm() {
         <div className="bg-white rounded-lg p-6 shadow-sm h-fit">
           <h2 className="text-xl font-bold text-gray-900 mb-4">Order Summary</h2>
 
-          {cartLoading || isMerging ? (
+          {cartLoading || isMerging || profileLoading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin mr-2" />
-              <span>{isMerging ? "Syncing your cart..." : "Loading cart..."}</span>
+              <span>
+                {isMerging ? "Syncing your cart..." : profileLoading ? "Loading your details..." : "Loading cart..."}
+              </span>
             </div>
           ) : !cart?.items?.length ? (
             <div className="text-center py-8 text-gray-500">
@@ -317,16 +794,16 @@ export default function CheckoutForm() {
               <div className="border-t pt-4 space-y-2">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span>₹{cart.subtotal?.toFixed(2) || '0.00'}</span>
+                  <span>₹{(cart.subtotal || cart.total || cart.items.reduce((s, i) => s + i.price * i.quantity, 0)).toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between text-green-600">
                   <span>Shipping</span>
-                  <span>{cart.shipping === 0 ? "Free" : `₹${cart.shipping?.toFixed(2) || '0.00'}`}</span>
+                  <span className="font-medium">{!cart.shipping ? "Free" : `₹${cart.shipping.toFixed(2)}`}</span>
                 </div>
                 <div className="border-t pt-2">
                   <div className="flex justify-between font-bold text-lg">
                     <span>Total</span>
-                    <span>₹{cart.total?.toFixed(2) || '0.00'}</span>
+                    <span>₹{(cart.total || cart.items.reduce((s, i) => s + i.price * i.quantity, 0)).toFixed(2)}</span>
                   </div>
                 </div>
               </div>
@@ -351,40 +828,10 @@ export default function CheckoutForm() {
                     onError={handlePaymentError}
                   />
                 </div>
-              ) : orderCreated && formData.paymentMethod === 'cod' ? (
-                <div className="mt-6">
-                  <div className="mb-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl">
-                    <div className="flex items-start space-x-3">
-                      <div className="flex-shrink-0">
-                        <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
-                          <CheckCircle2 className="w-6 h-6 text-white" />
-                        </div>
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-bold text-green-900 mb-1">Order Placed Successfully!</h3>
-                        <p className="text-sm text-green-700 mb-2">
-                          Your order has been confirmed. You will pay <span className="font-semibold">₹{cart.total?.toFixed(2) || '0.00'}</span> when you receive your order.
-                        </p>
-                        <div className="flex items-center space-x-2 text-xs text-green-600 mt-2">
-                          <Truck className="w-4 h-4" />
-                          <span>We'll notify you once your order is shipped</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handlePaymentSuccess}
-                    className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 px-6 rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all shadow-md hover:shadow-lg font-semibold flex items-center justify-center space-x-2"
-                  >
-                    <span>View Order Details</span>
-                    <CheckCircle2 className="w-5 h-5" />
-                  </button>
-                </div>
               ) : (
                 <button
                   type="submit"
-                  disabled={isSubmitting || !isAuthenticated}
+                  disabled={isSubmitting || !isAuthenticated || (pincodeCheck.checked && pincodeCheck.serviceable === false)}
                   className="w-full bg-gray-900 text-white py-3 px-6 rounded-lg hover:bg-gray-800 transition-colors mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? (

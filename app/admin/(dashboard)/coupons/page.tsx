@@ -130,7 +130,7 @@ export default function CouponsPage() {
       case "PERCENTAGE":
         return `${coupon.discountValue}%`
       case "FIXED_AMOUNT":
-        return `$${coupon.discountValue}`
+        return `₹${coupon.discountValue}`
       case "FREE_SHIPPING":
         return "Free Shipping"
       default:
@@ -372,7 +372,7 @@ export default function CouponsPage() {
                           <div className="font-semibold">{formatDiscountValue(coupon)}</div>
                         </TableCell>
                         <TableCell className="text-right">
-                          <div className="text-sm">${coupon.minOrderValue || 0}</div>
+                          <div className="text-sm">₹{coupon.minOrderValue || 0}</div>
                         </TableCell>
                         <TableCell className="text-center">
                           <div className="space-y-1">
@@ -431,7 +431,7 @@ export default function CouponsPage() {
                                   const res = await api.coupons.usage(coupon.id)
                                   if ((res as any).error) throw new Error((res as any).error)
                                   const u = res.data?.usage
-                                  alert(`Usage for ${coupon.code}:\nOrders: ${u.ordersUsing}\nUsed: ${u.usageCount} / ${u.usageLimit ?? '∞'}\nTotal Discount: ${u.totalDiscountGiven}`)
+                                  alert(`Usage for ${coupon.code}:\nOrders: ${u.ordersUsing}\nUsed: ${u.usageCount} / ${u.usageLimit ?? '∞'}\nTotal Discount: ₹${u.totalDiscountGiven}`)
                                 } catch (e) {
                                   console.error(e)
                                   alert("Failed to fetch usage")

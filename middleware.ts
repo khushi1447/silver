@@ -83,7 +83,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // ── Protected user routes ─────────────────────────────────────
-  const protectedUserRoutes = ['/profile', '/orders', '/wishlist'];
+  const protectedUserRoutes = ['/profile', '/orders', '/wishlist', '/order-confirmation'];
   const isProtectedUserRoute = protectedUserRoutes.some((route) =>
     pathname.startsWith(route)
   );
@@ -103,8 +103,11 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/admin/:path*',
+    '/profile',
     '/profile/:path*',
+    '/orders',
     '/orders/:path*',
+    '/order-confirmation',
     '/wishlist/:path*',
   ],
 };

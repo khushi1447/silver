@@ -6,8 +6,8 @@ import { z } from "zod";
 // Validation schema for updating categories
 const updateCategorySchema = z.object({
   name: z.string().min(1, "Category name is required").optional(),
-  description: z.string().optional(),
-  imageUrl: z.string().url("Valid URL is required").optional(),
+  description: z.string().nullable().optional(),
+  imageUrl: z.string().url("Valid URL is required").nullable().optional(),
 });
 
 export async function GET(

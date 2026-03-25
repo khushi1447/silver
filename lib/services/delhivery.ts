@@ -117,9 +117,12 @@ export async function createDelhiveryShipment(data: CreateShipmentData): Promise
     })
     if (!order) return { success: false, error: 'Order not found' }
 
-    // Ensure payment completed
-    const successfulPayment = order.payments.find(p => p.status === 'COMPLETED')
-    if (!successfulPayment) return { success: false, error: 'Payment not completed for this order' }
+    // For online payments, require COMPLETED. For COD, PENDING is expected.
+    const isCodOrder = order.payments.some(p => p.paymentMethod === 'COD')
+    if (!isCodOrder) {
+      const successfulPayment = order.payments.find(p => p.status === 'COMPLETED')
+      if (!successfulPayment) return { success: false, error: 'Payment not completed for this order' }
+    }
 
     // Idempotent: reuse existing shipping record
     const existingShipping = await prisma.shipping.findFirst({ where: { orderId: order.id } })
@@ -139,7 +142,7 @@ export async function createDelhiveryShipment(data: CreateShipmentData): Promise
     // Serviceability pre-check
     const delhiveryService = getDelhiveryService()
     const pin = shippingAddress.postalCode
-    const serviceable = await delhiveryService.checkServiceability(pin)
+    const { serviceable } = await delhiveryService.checkServiceability(pin)
     if (!serviceable) {
       logger.warn('delhivery.serviceability.blocked', { orderId: order.id, pin })
       return { success: false, error: `Destination PIN ${pin} currently not serviceable.` }
@@ -161,7 +164,8 @@ export async function createDelhiveryShipment(data: CreateShipmentData): Promise
           order: order.orderNumber,
           products_desc: order.orderItems.map(i => `${i.productName} (${i.quantity})`).join(', '),
           weight: calculateTotalWeight(order.orderItems).toString(),
-          payment_mode: 'Pre-paid',
+          payment_mode: isCodOrder ? 'COD' : 'Pre-paid',
+          collectable_amount: isCodOrder ? Number(order.totalAmount).toFixed(0) : undefined,
           return_name: data.pickupAddress?.name || 'Elegant Jewelry Store',
           return_add: data.pickupAddress?.address || '123 Jewelry Street, Commercial Area',
           return_city: data.pickupAddress?.city || 'Mumbai',

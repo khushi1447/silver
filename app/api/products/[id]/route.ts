@@ -125,10 +125,11 @@ export async function GET(
         { status: 404 }
       );
     }
-    
-    // Check if user is admin or product has stock
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.isAdmin && product.stock <= 0) {
+
+    // Hide out-of-stock products from the public storefront only.
+    // Admin panel uses JWT (admin-token) without a NextAuth session — must use checkAdminAuth().
+    const isAdmin = await checkAdminAuth();
+    if (!isAdmin && product.stock <= 0) {
       return NextResponse.json(
         { error: "Product not found" },
         { status: 404 }

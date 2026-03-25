@@ -4,8 +4,6 @@ import { useState } from "react";
 import {
   Search,
   Eye,
-  RefreshCw,
-  CreditCard,
   Loader2,
   ChevronLeft,
   ChevronRight,
@@ -15,6 +13,7 @@ import {
   CheckCircle,
   XCircle,
   Trash2,
+  RefreshCw,
 } from "lucide-react";
 import { useOrders } from "@/hooks/useOrders";
 
@@ -146,9 +145,9 @@ export default function OrdersPage() {
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat("en-IN", {
       style: "currency",
-      currency: "USD",
+      currency: "INR",
     }).format(price);
   };
 
@@ -162,9 +161,38 @@ export default function OrdersPage() {
     });
   };
 
-  const handleRefund = (orderId: string) => {
-    // Handle refund logic
-    console.log("Processing refund for order:", orderId);
+  const [shippingOrderId, setShippingOrderId] = useState<string | null>(null);
+  const [updatingStatusId, setUpdatingStatusId] = useState<string | null>(null);
+
+  const handleCreateShipment = async (orderId: string) => {
+    if (!confirm("Create a Delhivery shipment for this order?")) return;
+    setShippingOrderId(orderId);
+    try {
+      const res = await fetch(`/api/orders/${orderId}/ship`, { method: "POST", credentials: "include" });
+      const data = await res.json();
+      if (data.success) {
+        alert(`Shipment created!\nTracking: ${data.trackingNumber}\n${data.message || ""}`);
+        window.location.reload();
+      } else {
+        alert(`Failed: ${data.error}`);
+      }
+    } catch {
+      alert("Network error creating shipment");
+    } finally {
+      setShippingOrderId(null);
+    }
+  };
+
+  const handleUpdateStatus = async (orderId: string, newStatus: string) => {
+    setUpdatingStatusId(orderId);
+    try {
+      await (await import("@/lib/api")).api.orders.update(orderId, { status: newStatus });
+      window.location.reload();
+    } catch {
+      alert("Failed to update status");
+    } finally {
+      setUpdatingStatusId(null);
+    }
   };
 
   const handleDelete = async (orderId: string) => {
@@ -409,14 +437,13 @@ export default function OrdersPage() {
                                 <Eye className="mr-2 h-4 w-4" />
                                 View Details
                               </DropdownMenuItem>
-                              {order.payment?.status === "paid" && (
-                                <DropdownMenuItem
-                                  onClick={() => handleRefund(order.id)}
-                                >
-                                  <RefreshCw className="mr-2 h-4 w-4" />
-                                  Issue Refund
-                                </DropdownMenuItem>
-                              )}
+                              <DropdownMenuItem
+                                onClick={() => handleCreateShipment(order.id)}
+                                disabled={shippingOrderId === order.id || order.status === "CANCELLED" || order.status === "DELIVERED" || order.status === "REFUNDED"}
+                              >
+                                <Truck className="mr-2 h-4 w-4" />
+                                {shippingOrderId === order.id ? "Creating..." : "Ship via Delhivery"}
+                              </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => handleDelete(order.id)}
                                 className="text-red-600 focus:text-red-600 focus:bg-red-50"
@@ -690,109 +717,115 @@ export default function OrdersPage() {
                 </div>
               </div>
 
-              {/* Actions */}
-              <div className="flex justify-between items-center pt-4 border-t">
-                <Button
-                  variant="outline"
-                  onClick={async () => {
-                    if (
-                      !confirm(
-                        "Are you sure you want to delete this order? This action cannot be undone."
-                      )
-                    ) {
-                      return;
-                    }
-                    try {
-                      const response = await (
-                        await import("@/lib/api")
-                      ).api.orders.delete(selectedOrder.id);
-                      if (response.error) {
-                        alert(`Failed to delete order: ${response.error}`);
+              {/* Shipping / Delhivery */}
+              <div>
+                <h3 className="font-semibold mb-3">Shipping</h3>
+                <div className="p-4 border rounded-lg space-y-2">
+                  {selectedOrder.shipping?.trackingNumber ? (
+                    <>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Truck className="h-4 w-4 text-purple-600" />
+                        <span className="font-medium">Tracking:</span>
+                        <span>{selectedOrder.shipping.trackingNumber}</span>
+                      </div>
+                      {selectedOrder.shipping.carrier && (
+                        <p className="text-sm text-muted-foreground">
+                          Carrier: {selectedOrder.shipping.carrier}
+                        </p>
+                      )}
+                      {selectedOrder.shipping.status && (
+                        <p className="text-sm text-muted-foreground">
+                          Status: {selectedOrder.shipping.status}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                      <p className="text-sm text-muted-foreground">
+                        No shipment created yet.
+                      </p>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={shippingOrderId === String(selectedOrder.id)}
+                        onClick={() => handleCreateShipment(String(selectedOrder.id))}
+                        className="hover:bg-purple-50 hover:text-purple-600 hover:border-purple-200"
+                      >
+                        <Truck className="mr-2 h-4 w-4" />
+                        {shippingOrderId === String(selectedOrder.id)
+                          ? "Creating..."
+                          : "Create Delhivery Shipment"}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Update Status */}
+              <div className="pt-4 border-t space-y-4">
+                <div>
+                  <h3 className="font-semibold mb-2">Update Status</h3>
+                  <div className="flex items-center gap-3">
+                    <Select
+                      value={selectedOrder.status?.toUpperCase()}
+                      onValueChange={(val) => handleUpdateStatus(String(selectedOrder.id), val)}
+                      disabled={updatingStatusId === String(selectedOrder.id)}
+                    >
+                      <SelectTrigger className="w-48 h-9">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="PENDING">Pending</SelectItem>
+                        <SelectItem value="CONFIRMED">Confirmed</SelectItem>
+                        <SelectItem value="PROCESSING">Processing</SelectItem>
+                        <SelectItem value="SHIPPED">Shipped</SelectItem>
+                        <SelectItem value="DELIVERED">Delivered</SelectItem>
+                        <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                        <SelectItem value="REFUNDED">Refunded</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {updatingStatusId === String(selectedOrder.id) && (
+                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap justify-between items-center gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={async () => {
+                      if (
+                        !confirm(
+                          "Are you sure you want to delete this order? This action cannot be undone."
+                        )
+                      ) {
                         return;
                       }
-                      setSelectedOrder(null);
-                      window.location.reload();
-                    } catch (e) {
-                      console.error(e);
-                      alert("Failed to delete order");
-                    }
-                  }}
-                  className="hover:bg-red-50 hover:text-red-600 hover:border-red-200"
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete Order
-                </Button>
-                <div className="flex gap-2">
+                      try {
+                        const response = await (
+                          await import("@/lib/api")
+                        ).api.orders.delete(selectedOrder.id);
+                        if (response.error) {
+                          alert(`Failed to delete order: ${response.error}`);
+                          return;
+                        }
+                        setSelectedOrder(null);
+                        window.location.reload();
+                      } catch (e) {
+                        console.error(e);
+                        alert("Failed to delete order");
+                      }
+                    }}
+                    className="hover:bg-red-50 hover:text-red-600 hover:border-red-200"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete Order
+                  </Button>
                   <Button
                     variant="outline"
                     onClick={() => setSelectedOrder(null)}
                   >
                     Close
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={async () => {
-                      const status = window.prompt(
-                        "Enter new status (pending, confirmed, processing, shipped, delivered, cancelled, refunded):",
-                        (selectedOrder.status || "pending").toLowerCase()
-                      );
-                      if (!status) return;
-                      try {
-                        const allowed = [
-                          "pending",
-                          "confirmed",
-                          "processing",
-                          "shipped",
-                          "delivered",
-                          "cancelled",
-                          "refunded",
-                        ];
-                        if (!allowed.includes(status.toLowerCase())) {
-                          alert("Invalid status");
-                          return;
-                        }
-                        await (
-                          await import("@/lib/api")
-                        ).api.orders.update(selectedOrder.id, {
-                          status: status.toUpperCase(),
-                        });
-                        // Optimistic UI update
-                        setSelectedOrder({
-                          ...selectedOrder,
-                          status: status.toUpperCase(),
-                        });
-                      } catch (e) {
-                        console.error(e);
-                        alert("Failed to update status");
-                      }
-                    }}
-                  >
-                    <Package className="mr-2 h-4 w-4" />
-                    Update Status
-                  </Button>
-                  {selectedOrder.payment?.status === "COMPLETED" && (
-                    <Button
-                      variant="outline"
-                      onClick={async () => {
-                        try {
-                          await (
-                            await import("@/lib/api")
-                          ).api.orders.refund(selectedOrder.id);
-                          alert("Refund issued successfully");
-                        } catch (e) {
-                          console.error(e);
-                          alert("Failed to issue refund");
-                        }
-                      }}
-                      className="hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200"
-                    >
-                      <RefreshCw className="mr-2 h-4 w-4" />
-                      Issue Refund
-                    </Button>
-                  )}
-                  <Button>
-                    <CreditCard className="mr-2 h-4 w-4" />
-                    View Payment Details
                   </Button>
                 </div>
               </div>

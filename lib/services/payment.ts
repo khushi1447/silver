@@ -194,7 +194,8 @@ export async function processPayment(
       }
     })
 
-    // Update product stock if payment successful
+    // Reserve stock + clear cart only after successful online payment (Razorpay).
+    // COD already cleared cart and decremented stock in createOrderAction.
     if (paymentStatus === 'COMPLETED') {
       for (const item of updatedOrder.orderItems) {
         await prisma.product.update({
@@ -206,6 +207,10 @@ export async function processPayment(
           }
         })
       }
+
+      await prisma.cartItem.deleteMany({
+        where: { userId: updatedOrder.userId },
+      })
 
       // Create Delhivery shipment after successful payment
       try {

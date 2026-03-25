@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 
 interface RazorpayOptions {
@@ -52,7 +51,6 @@ export default function RazorpayCheckout({
 }: RazorpayCheckoutProps) {
   const [loading, setLoading] = useState(false)
   const [razorpayLoaded, setRazorpayLoaded] = useState(false)
-  const router = useRouter()
 
   useEffect(() => {
     // Load Razorpay script
@@ -166,7 +164,6 @@ export default function RazorpayCheckout({
       if (result.success) {
         toast.success('Payment successful! Your order has been confirmed.')
         onSuccess()
-        router.push(`/orders/${result.order.id}`)
       } else {
         throw new Error(result.error || 'Payment verification failed')
       }
