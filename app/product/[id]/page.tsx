@@ -6,6 +6,7 @@ import JsonLd from "@/components/JsonLd"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
 import ProductDetails from "@/components/ProductDetails"
+import RelatedProducts from "@/components/RelatedProducts"
 import { getProductById } from "@/lib/services/product"
 import { prisma } from "@/lib/db"
 
@@ -93,7 +94,20 @@ export default async function ProductPage({ params }: ProductPageProps) {
       <div className="min-h-screen bg-gray-50">
         <JsonLd data={[productSchema(product), breadcrumbs]} />
         <Header />
+        {/* Visual breadcrumb */}
+        <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-0" aria-label="Breadcrumb">
+          <ol className="flex items-center gap-1.5 text-sm text-gray-500 flex-wrap">
+            <li><a href="/" className="hover:text-gray-900 transition-colors">Home</a></li>
+            <li className="select-none">/</li>
+            <li><a href="/shop" className="hover:text-gray-900 transition-colors">Shop</a></li>
+            <li className="select-none">/</li>
+            <li><a href={`/shop?category=${product.category.id}`} className="hover:text-gray-900 transition-colors">{product.category.name}</a></li>
+            <li className="select-none">/</li>
+            <li className="text-gray-900 font-medium truncate max-w-[200px]">{product.name}</li>
+          </ol>
+        </nav>
         <ProductDetails product={product as any} />
+        <RelatedProducts categoryId={Number(product.category.id)} currentProductId={Number(product.id)} />
         <Footer />
       </div>
     )

@@ -10,6 +10,7 @@ import { CreditCard, Loader2, Wallet, Truck, CheckCircle2, Info, MapPin, XCircle
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import RazorpayCheckout from './RazorpayCheckout'
+import { trackInitiateCheckout } from "@/lib/meta-events"
 
 type SavedAddress = {
   id: number
@@ -54,6 +55,30 @@ export default function CheckoutForm() {
     zipCode: "",
     paymentMethod: "razorpay",
   })
+
+  // Capture UTM params from URL on mount and persist to sessionStorage
+  useEffect(() => {
+    try {
+      const url = new URL(window.location.href)
+      const utmKeys = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"]
+      utmKeys.forEach((key) => {
+        const val = url.searchParams.get(key)
+        if (val) sessionStorage.setItem(key, val)
+      })
+    } catch {}
+  }, [])
+
+  const getUtmNotes = () => {
+    try {
+      const keys = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"]
+      const parts = keys
+        .map((k) => sessionStorage.getItem(k) ? `${k}=${sessionStorage.getItem(k)}` : null)
+        .filter(Boolean)
+      return parts.length ? parts.join("|") : undefined
+    } catch {
+      return undefined
+    }
+  }
 
   const applyAddress = useCallback((addr: SavedAddress) => {
     setFormData((prev) => ({
@@ -201,12 +226,6 @@ export default function CheckoutForm() {
     setError(null)
     setIsSubmitting(true)
 
-    if (!isAuthenticated) {
-      setError("Please log in to complete your order")
-      setIsSubmitting(false)
-      return
-    }
-
     if (!cart?.items?.length) {
       setError("Your cart is empty")
       setIsSubmitting(false)
@@ -214,40 +233,81 @@ export default function CheckoutForm() {
     }
 
     try {
-      const orderData = {
-        items: cart.items.map(item => ({
-          productId: item.productId,
-          quantity: item.quantity,
-          price: item.price
-        })),
-        shippingAddress: {
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          address: formData.address,
+      let result: { success: boolean; orderId?: any; error?: string }
+
+      if (isAuthenticated) {
+        // Authenticated users: use server action
+        const orderData = {
+          items: cart.items.map((item: any) => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            price: item.price
+          })),
+          shippingAddress: {
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+            address: formData.address,
+            city: formData.city,
+            state: formData.state,
+            zipCode: formData.zipCode,
+          },
+          billingAddress: {
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+            address: formData.address,
+            city: formData.city,
+            state: formData.state,
+            zipCode: formData.zipCode,
+          },
+          paymentMethod: formData.paymentMethod,
+          subtotal: cart.subtotal,
+          shipping: cart.shipping,
+          total: cart.total,
+          customerNotes: getUtmNotes(),
+        }
+        result = await createOrderAction(orderData)
+      } else {
+        // Guest users: call API directly
+        const nameParts = formData.name.trim().split(/\s+/)
+        const firstName = nameParts[0] || "Guest"
+        const lastName = nameParts.slice(1).join(" ") || "."
+        const addr = {
+          firstName,
+          lastName,
+          address1: formData.address,
           city: formData.city,
-          state: formData.state,
-          zipCode: formData.zipCode,
-        },
-        billingAddress: {
-          name: formData.name,
-          email: formData.email,
+          state: formData.state || "N/A",
+          postalCode: formData.zipCode,
+          country: "IN",
           phone: formData.phone,
-          address: formData.address,
-          city: formData.city,
-          state: formData.state,
-          zipCode: formData.zipCode,
-        },
-        paymentMethod: formData.paymentMethod,
-        subtotal: cart.subtotal,
-        shipping: cart.shipping,
-        total: cart.total
+        }
+        const res = await fetch("/api/orders", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            items: cart.items.map((item: any) => ({
+              productId: item.productId,
+              quantity: item.quantity,
+              selectedRingSize: item.selectedRingSize || null,
+            })),
+            billingAddress: addr,
+            shippingAddress: addr,
+            guestInfo: { email: formData.email, phone: formData.phone },
+            customerNotes: getUtmNotes(),
+          }),
+        })
+        const data = await res.json()
+        if (res.ok) {
+          result = { success: true, orderId: data.order.id }
+        } else {
+          result = { success: false, error: data.error || "Failed to create order" }
+        }
       }
 
-      const result = await createOrderAction(orderData)
-
       if (result.success) {
-        await syncProfileAndAddressAfterOrder()
+        if (isAuthenticated) await syncProfileAndAddressAfterOrder()
 
         if (formData.paymentMethod === "cod") {
           router.push(`/order-confirmation?orderId=${result.orderId}`)
@@ -260,8 +320,8 @@ export default function CheckoutForm() {
           customerDetails: {
             name: formData.name,
             email: formData.email,
-            phone: formData.phone
-          }
+            phone: formData.phone,
+          },
         })
       } else {
         setError(result.error || "Failed to create order")
@@ -323,6 +383,13 @@ export default function CheckoutForm() {
   }, [formData.zipCode])
 
   const total = cart ? cart.total : 0
+  const numItems = cart ? cart.items.reduce((sum: number, item: any) => sum + item.quantity, 0) : 0
+
+  useEffect(() => {
+    if (total > 0) {
+      trackInitiateCheckout({ value: total, numItems })
+    }
+  }, [])
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -829,25 +896,125 @@ export default function CheckoutForm() {
                   />
                 </div>
               ) : (
-                <button
-                  type="submit"
-                  disabled={isSubmitting || !isAuthenticated || (pincodeCheck.checked && pincodeCheck.serviceable === false)}
-                  className="w-full bg-gray-900 text-white py-3 px-6 rounded-lg hover:bg-gray-800 transition-colors mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="inline h-4 w-4 animate-spin mr-2" />
-                      Processing...
-                    </>
-                  ) : (
-                    `Place Order - ₹${cart.total?.toFixed(2) || '0.00'}`
-                  )}
-                </button>
+                <>
+                  {/* Free shipping progress bar */}
+                  {(() => {
+                    const FREE_SHIPPING_THRESHOLD = 5000
+                    const subtotal = cart.subtotal || cart.total || 0
+                    const remaining = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal)
+                    const pct = Math.min(100, (subtotal / FREE_SHIPPING_THRESHOLD) * 100)
+                    return remaining > 0 ? (
+                      <div className="mt-4 p-3 bg-purple-50 rounded-lg border border-purple-100">
+                        <p className="text-xs text-purple-700 font-medium mb-1.5">
+                          Add <span className="font-bold">₹{remaining.toFixed(0)}</span> more for Free Shipping!
+                        </p>
+                        <div className="h-2 bg-purple-200 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-500"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="mt-4 p-2.5 bg-green-50 rounded-lg border border-green-200 flex items-center gap-2">
+                        <span className="text-green-600 text-sm font-semibold">Free Shipping Applied!</span>
+                      </div>
+                    )
+                  })()}
+
+                  {/* Coupon code input */}
+                  <CouponField />
+
+                  {/* Trust badges */}
+                  <div className="mt-4 flex items-center justify-center gap-4 py-3 border border-gray-100 rounded-lg bg-gray-50">
+                    <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                      <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" /></svg>
+                      <span className="font-medium">SSL Secured</span>
+                    </div>
+                    <div className="w-px h-4 bg-gray-300" />
+                    <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                      <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                      <span className="font-medium">100% Secure</span>
+                    </div>
+                    <div className="w-px h-4 bg-gray-300" />
+                    <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                      <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+                      <span className="font-medium">Easy Returns</span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isSubmitting || (pincodeCheck.checked && pincodeCheck.serviceable === false)}
+                    className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white py-3.5 px-6 rounded-lg transition-all duration-300 mt-4 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-base shadow-md hover:shadow-lg"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="inline h-4 w-4 animate-spin mr-2" />
+                        Processing...
+                      </>
+                    ) : (
+                      `Place Order — ₹${cart.total?.toFixed(2) || '0.00'}`
+                    )}
+                  </button>
+                </>
               )}
             </>
           )}
         </div>
       </form>
+    </div>
+  )
+}
+
+function CouponField() {
+  const [code, setCode] = useState("")
+  const [status, setStatus] = useState<"idle" | "loading" | "applied" | "error">("idle")
+  const [message, setMessage] = useState("")
+
+  const apply = async () => {
+    if (!code.trim()) return
+    setStatus("loading")
+    try {
+      const res = await fetch(`/api/coupons/validate?code=${encodeURIComponent(code.trim())}`)
+      const data = await res.json()
+      if (res.ok && data.valid) {
+        setStatus("applied")
+        setMessage(`Coupon applied! ${data.discountType === "PERCENTAGE" ? `${data.discountValue}% off` : `₹${data.discountValue} off`}`)
+      } else {
+        setStatus("error")
+        setMessage(data.error || "Invalid or expired coupon code")
+      }
+    } catch {
+      setStatus("error")
+      setMessage("Could not validate coupon. Try again.")
+    }
+  }
+
+  return (
+    <div className="mt-4">
+      <label className="block text-sm font-medium text-gray-700 mb-1.5">Coupon Code</label>
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={code}
+          onChange={(e) => { setCode(e.target.value); setStatus("idle"); setMessage("") }}
+          placeholder="Enter coupon code"
+          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent uppercase"
+          disabled={status === "applied"}
+        />
+        <button
+          type="button"
+          onClick={apply}
+          disabled={status === "loading" || status === "applied" || !code.trim()}
+          className="px-4 py-2 bg-purple-600 text-white text-sm font-semibold rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+        >
+          {status === "loading" ? "..." : status === "applied" ? "Applied" : "Apply"}
+        </button>
+      </div>
+      {message && (
+        <p className={`text-xs mt-1.5 ${status === "applied" ? "text-green-600" : "text-red-600"}`}>{message}</p>
+      )}
     </div>
   )
 }

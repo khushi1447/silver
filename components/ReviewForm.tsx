@@ -50,7 +50,7 @@ export default function ReviewForm({ productId, onReviewSubmitted }: ReviewFormP
         throw new Error(data.error || "Failed to submit review")
       }
 
-      setSuccess("Review submitted successfully! It will be visible after admin approval.")
+      setSuccess("Thank you! Your review is now live.")
       
       // Reset form
       setRating(0)

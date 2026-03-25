@@ -10,6 +10,7 @@ interface Category {
   slug?: string;
   image?: string;
   parentId?: number;
+  productCount?: number;
   createdAt: string;
   updatedAt: string;
 }

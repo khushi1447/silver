@@ -10,8 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
-import { Star, Search, CheckCircle, XCircle, Trash2, MessageSquare, Loader2, RefreshCw } from "lucide-react"
-import { toast } from "sonner"
+import { Star, Search, Eye, EyeOff, Trash2, MessageSquare, Loader2, RefreshCw } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 interface Review {
   id: number
@@ -38,6 +38,7 @@ function StarRating({ rating }: { rating: number }) {
 }
 
 export default function AdminReviewsPage() {
+  const { toast } = useToast()
   const [reviews, setReviews] = useState<Review[]>([])
   const [loading, setLoading] = useState(true)
   const [total, setTotal] = useState(0)
@@ -71,7 +72,7 @@ export default function AdminReviewsPage() {
       setReviews(data.reviews)
       setTotal(data.pagination.total)
     } catch {
-      toast.error("Failed to load reviews")
+      toast({ title: "Failed to load reviews", variant: "destructive" })
     } finally {
       setLoading(false)
     }
@@ -79,37 +80,19 @@ export default function AdminReviewsPage() {
 
   useEffect(() => { fetchReviews() }, [fetchReviews])
 
-  const approve = async (id: number) => {
+  const toggleVisibility = async (id: number, currentlyVisible: boolean) => {
     setActionLoading(id)
     try {
       const res = await fetch(`/api/reviews/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isApproved: true }),
+        body: JSON.stringify({ isApproved: !currentlyVisible }),
       })
       if (!res.ok) throw new Error()
-      toast.success("Review approved")
+      toast({ title: currentlyVisible ? "Review hidden" : "Review made visible" })
       fetchReviews()
     } catch {
-      toast.error("Failed to approve")
-    } finally {
-      setActionLoading(null)
-    }
-  }
-
-  const reject = async (id: number) => {
-    setActionLoading(id)
-    try {
-      const res = await fetch(`/api/reviews/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ isApproved: false }),
-      })
-      if (!res.ok) throw new Error()
-      toast.success("Review rejected")
-      fetchReviews()
-    } catch {
-      toast.error("Failed to reject")
+      toast({ title: "Failed to update", variant: "destructive" })
     } finally {
       setActionLoading(null)
     }
@@ -120,11 +103,11 @@ export default function AdminReviewsPage() {
     try {
       const res = await fetch(`/api/reviews/${deleteId}`, { method: "DELETE" })
       if (!res.ok) throw new Error()
-      toast.success("Review deleted")
+      toast({ title: "Review deleted" })
       setDeleteId(null)
       fetchReviews()
     } catch {
-      toast.error("Failed to delete")
+      toast({ title: "Failed to delete", variant: "destructive" })
     }
   }
 
@@ -138,19 +121,19 @@ export default function AdminReviewsPage() {
         body: JSON.stringify({ adminReply: replyText }),
       })
       if (!res.ok) throw new Error()
-      toast.success("Reply saved")
+      toast({ title: "Reply saved" })
       setReplyDialog(null)
       setReplyText("")
       fetchReviews()
     } catch {
-      toast.error("Failed to save reply")
+      toast({ title: "Failed to save reply", variant: "destructive" })
     } finally {
       setReplyLoading(false)
     }
   }
 
-  const pendingCount = reviews.filter((r) => !r.isApproved).length
-  const approvedCount = reviews.filter((r) => r.isApproved).length
+  const visibleCount = reviews.filter((r) => r.isApproved).length
+  const hiddenCount = reviews.filter((r) => !r.isApproved).length
 
   return (
     <div className="space-y-6">
@@ -174,14 +157,14 @@ export default function AdminReviewsPage() {
         </Card>
         <Card>
           <CardContent className="pt-4">
-            <p className="text-sm text-muted-foreground">Pending Approval</p>
-            <p className="text-2xl font-bold text-orange-600">{pendingCount}</p>
+            <p className="text-sm text-muted-foreground">Visible</p>
+            <p className="text-2xl font-bold text-green-600">{visibleCount}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4">
-            <p className="text-sm text-muted-foreground">Approved</p>
-            <p className="text-2xl font-bold text-green-600">{approvedCount}</p>
+            <p className="text-sm text-muted-foreground">Hidden</p>
+            <p className="text-2xl font-bold text-gray-500">{hiddenCount}</p>
           </CardContent>
         </Card>
       </div>
@@ -201,12 +184,12 @@ export default function AdminReviewsPage() {
             </div>
             <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1) }}>
               <SelectTrigger className="w-36">
-                <SelectValue placeholder="Status" />
+                <SelectValue placeholder="Visibility" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
+                <SelectItem value="all">All Reviews</SelectItem>
+                <SelectItem value="approved">Visible</SelectItem>
+                <SelectItem value="pending">Hidden</SelectItem>
               </SelectContent>
             </Select>
             <Select value={ratingFilter} onValueChange={(v) => { setRatingFilter(v); setPage(1) }}>
@@ -268,8 +251,8 @@ export default function AdminReviewsPage() {
                       <span className="text-xs text-muted-foreground">{review.rating}/5</span>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={review.isApproved ? "default" : "secondary"} className={review.isApproved ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"}>
-                        {review.isApproved ? "Approved" : "Pending"}
+                      <Badge variant={review.isApproved ? "default" : "secondary"} className={review.isApproved ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}>
+                        {review.isApproved ? "Visible" : "Hidden"}
                       </Badge>
                       {review.isVerified && (
                         <Badge variant="outline" className="ml-1 text-xs">Verified</Badge>
@@ -284,15 +267,14 @@ export default function AdminReviewsPage() {
                           <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
                           <>
-                            {!review.isApproved ? (
-                              <Button size="icon" variant="ghost" className="h-7 w-7 text-green-600" title="Approve" onClick={() => approve(review.id)}>
-                                <CheckCircle className="h-4 w-4" />
-                              </Button>
-                            ) : (
-                              <Button size="icon" variant="ghost" className="h-7 w-7 text-orange-600" title="Reject" onClick={() => reject(review.id)}>
-                                <XCircle className="h-4 w-4" />
-                              </Button>
-                            )}
+                            <Button
+                              size="icon" variant="ghost"
+                              className={`h-7 w-7 ${review.isApproved ? "text-gray-500" : "text-green-600"}`}
+                              title={review.isApproved ? "Hide review" : "Show review"}
+                              onClick={() => toggleVisibility(review.id, review.isApproved)}
+                            >
+                              {review.isApproved ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                            </Button>
                             <Button
                               size="icon" variant="ghost" className="h-7 w-7 text-blue-600" title="Reply"
                               onClick={() => { setReplyDialog(review); setReplyText(review.adminReply || "") }}

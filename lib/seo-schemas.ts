@@ -66,8 +66,8 @@ export function localBusinessSchema() {
     },
     geo: {
       "@type": "GeoCoordinates",
-      latitude: "23.0225",
-      longitude: "72.5714",
+      latitude: "22.6938",
+      longitude: "72.8625",
     },
     areaServed: {
       "@type": "Country",

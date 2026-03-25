@@ -2,7 +2,7 @@ import { Metadata } from "next"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
 import JsonLd from "@/components/JsonLd"
-import { breadcrumbSchema } from "@/lib/seo-schemas"
+import { breadcrumbSchema, faqSchema } from "@/lib/seo-schemas"
 import CollectionProducts from "@/components/CollectionProducts"
 
 export const metadata: Metadata = {
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 export default function SilverPendantsAhmedabadPage() {
   return (
     <div className="min-h-screen bg-gray-50">
-      <JsonLd data={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Collection", url: "/shop" }, { name: "Silver Pendants for Women Ahmedabad", url: "/collection/silver-pendants-women-ahmedabad" }])} />
+      <JsonLd data={[breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Collection", url: "/shop" }, { name: "Silver Pendants for Women Ahmedabad", url: "/collection/silver-pendants-women-ahmedabad" }]), faqSchema([{ question: "Are the silver pendants real 925 sterling silver?", answer: "Yes, all our pendants are made with genuine 925 sterling silver and are BIS hallmarked." }, { question: "Can I wear a pendant necklace daily?", answer: "Yes, our pendants are designed for comfortable everyday wear. The 925 silver is skin-safe and hypoallergenic." }, { question: "Do your pendants come with a chain?", answer: "Some pendants include a chain and some are sold separately. Check the individual product listing for details." }, { question: "How do I care for my silver pendant?", answer: "Wipe with a soft cloth, store in a dry box, and avoid contact with perfumes, chemicals, or water to maintain shine." }, { question: "Do you ship silver pendants across India?", answer: "Yes, we offer pan-India shipping including to Nadiad and all major cities." }])]} />
       <Header />
 
       {/* Hero Section */}

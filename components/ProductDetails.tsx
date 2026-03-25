@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import AddToCartButton from "./AddToCartButton";
 import WishlistButton from "./WishlistButton";
 import ProductReviews from "./ProductReviews";
+import { trackViewContent } from "@/lib/meta-events";
 
 interface ProductDetailsProps {
   product: ApiProduct | ProductWithDetails;
@@ -21,6 +22,15 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
   const [quantity, setQuantity] = useState(1);
   const [selectedRingSize, setSelectedRingSize] = useState<string>("");
   const [isLinkCopied, setIsLinkCopied] = useState(false);
+
+  useEffect(() => {
+    trackViewContent({
+      contentId: product.id,
+      contentName: product.name,
+      contentCategory: product.category?.name,
+      value: typeof product.price === "number" ? product.price : parseFloat(String(product.price)),
+    });
+  }, [product.id]);
   
   const isRing = product.category?.name?.toLowerCase().includes("ring");
   const hasRingSizes = product.availableRingSizes && product.availableRingSizes.length > 0;
@@ -381,7 +391,15 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                 {product.weight && (
                   <li>• <span className="font-medium">Weight:</span> {product.weight}g</li>
                 )}
-                <li>• <span className="font-medium">Stock:</span> {product.stock > 0 ? `${product.stock} units available` : 'Out of stock'}</li>
+                <li>• <span className="font-medium">Stock:</span>{" "}
+                  {product.stock === 0 ? (
+                    <span className="text-red-600 font-semibold">Out of stock</span>
+                  ) : product.stock <= 5 ? (
+                    <span className="text-amber-600 font-semibold">Only {product.stock} left — order soon!</span>
+                  ) : (
+                    `${product.stock} units available`
+                  )}
+                </li>
               </ul>
             </div>
 
@@ -389,6 +407,8 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
             <div className="flex space-x-4 pt-2">
               <AddToCartButton
                 productId={product.id}
+                productName={product.name}
+                productPrice={typeof product.price === "number" ? product.price : parseFloat(String(product.price))}
                 quantity={quantity}
                 selectedSize={selectedRingSize}
                 disabled={product.stock === 0 || (isRing && hasRingSizes && !selectedRingSize)}
@@ -424,14 +444,14 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
       </div>
 
       {/* Reviews Section */}
-      {/* {"reviews" in product && "stats" in product && (
+      {"reviews" in product && "stats" in product && (
         <ProductReviews
-          reviews={product.reviews}
-          averageRating={product.stats.averageRating}
-          reviewCount={product.stats.reviewCount}
-          productId={product.id}
+          reviews={(product as any).reviews}
+          averageRating={(product as any).stats.averageRating}
+          reviewCount={(product as any).stats.reviewCount}
+          productId={String(product.id)}
         />
-      )} */}
+      )}
     </div>
   );
 }

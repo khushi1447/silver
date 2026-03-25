@@ -6,9 +6,12 @@ import { addToCartAction } from "@/lib/actions"
 import { useAuth } from "@/hooks/useAuth"
 import { useUnifiedCart } from "@/hooks/useUnifiedCart"
 import { useToast } from "@/hooks/use-toast"
+import { trackAddToCart } from "@/lib/meta-events"
 
 interface AddToCartButtonProps {
   productId: string
+  productName?: string
+  productPrice?: number
   quantity?: number
   selectedSize?: string
   className?: string
@@ -24,7 +27,9 @@ export default function AddToCartButton({
   className = "",
   variant = "default",
   size = "md",
-  disabled = false
+  disabled = false,
+  productName,
+  productPrice,
 }: AddToCartButtonProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [isAdded, setIsAdded] = useState(false)
@@ -42,6 +47,7 @@ export default function AddToCartButton({
         
         if (result.success) {
           setIsAdded(true)
+          trackAddToCart({ contentId: productId, contentName: productName || "", value: productPrice })
           // Refresh cart data
           await refetch()
           // Show success toast
@@ -61,6 +67,7 @@ export default function AddToCartButton({
         // Use unified cart for guest users
         await addToCart(productId, quantity, selectedSize)
         setIsAdded(true)
+        trackAddToCart({ contentId: productId, contentName: productName || "", value: productPrice })
         // Show success toast
         toast({
           title: "Added to cart!",

@@ -2,7 +2,7 @@ import { Metadata } from "next"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
 import JsonLd from "@/components/JsonLd"
-import { breadcrumbSchema } from "@/lib/seo-schemas"
+import { breadcrumbSchema, faqSchema } from "@/lib/seo-schemas"
 import CollectionProducts from "@/components/CollectionProducts"
 
 export const metadata: Metadata = {
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 export default function DelicateSilverPendantsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
-      <JsonLd data={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Collection", url: "/shop" }, { name: "Delicate Silver Pendant Necklaces", url: "/collection/delicate-silver-pendant-necklaces" }])} />
+      <JsonLd data={[breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Collection", url: "/shop" }, { name: "Delicate Silver Pendant Necklaces", url: "/collection/delicate-silver-pendant-necklaces" }]), faqSchema([{ question: "Are these pendant necklaces made from real silver?", answer: "Yes, all pendant necklaces are crafted with 925 sterling silver and are BIS hallmarked for authenticity." }, { question: "Are delicate silver necklaces suitable for daily wear?", answer: "Yes, though delicate styles are more ornate, they are made from durable 925 silver suitable for regular wear with gentle handling." }, { question: "Do these come with a chain?", answer: "Most of our pendant necklaces include a chain. Check individual product pages for complete details." }, { question: "How to prevent tarnishing?", answer: "Store in a dry pouch, avoid chemical exposure, and clean gently with a silver polishing cloth." }, { question: "Can I gift these pendant necklaces?", answer: "Absolutely. Our pendant necklaces come in premium packaging perfect for gifting on any occasion." }])]} />
       <Header />
 
       {/* Hero Section */}

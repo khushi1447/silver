@@ -75,6 +75,10 @@ model Product {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([categoryId])
+  @@index([createdAt(sort: Desc)])
+  @@index([name])
 }
 
 
@@ -114,6 +118,10 @@ model Order {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt(sort: Desc)])
 }
 
 enum OrderStatus {
@@ -251,6 +259,8 @@ model ProductImage {
   sortOrder Int      @default(0)
   isPrimary Boolean  @default(false)
   createdAt DateTime @default(now())
+
+  @@index([productId, isPrimary])
 }
 
 model CartItem {
@@ -284,6 +294,7 @@ model Review {
   updatedAt    DateTime @updatedAt
 
   @@unique([userId, productId]) // one review per user per product
+  @@index([productId, isApproved])
 }
 
 model WishlistItem {

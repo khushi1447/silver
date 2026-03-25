@@ -3,7 +3,7 @@ import Footer from "@/components/Footer"
 import CheckoutForm from "@/components/CheckoutForm"
 
 export const metadata = {
-  title: "Checkout - Elegant Jewelry",
+  title: "Checkout | Silverline925",
   description: "Complete your jewelry purchase with secure checkout.",
   robots: {
     index: false,

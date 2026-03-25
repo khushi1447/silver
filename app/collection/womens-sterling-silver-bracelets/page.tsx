@@ -2,7 +2,7 @@ import { Metadata } from "next"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
 import JsonLd from "@/components/JsonLd"
-import { breadcrumbSchema } from "@/lib/seo-schemas"
+import { breadcrumbSchema, faqSchema } from "@/lib/seo-schemas"
 import CollectionProducts from "@/components/CollectionProducts"
 
 export const metadata: Metadata = {
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 export default function WomensSterlingSilverBraceletsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
-      <JsonLd data={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Collection", url: "/shop" }, { name: "Women's Sterling Silver Bracelets", url: "/collection/womens-sterling-silver-bracelets" }])} />
+      <JsonLd data={[breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Collection", url: "/shop" }, { name: "Women's Sterling Silver Bracelets", url: "/collection/womens-sterling-silver-bracelets" }]), faqSchema([{ question: "Are these bracelets made from 925 sterling silver?", answer: "Yes, all our women's bracelets are crafted from certified 925 sterling silver and are hallmarked for authenticity." }, { question: "Can I wear a silver bracelet every day?", answer: "Yes, our bracelets are designed for everyday wear. Sterling silver is durable, hypoallergenic, and skin-safe." }, { question: "Do you offer different bracelet sizes for women?", answer: "Yes, we offer multiple size options. Please refer to the product listing for available sizes." }, { question: "How do I care for my silver bracelet?", answer: "Clean with a soft polishing cloth, avoid perfumes and water, and store in a dry jewellery box." }, { question: "Are these bracelets suitable for gifting?", answer: "Yes, our women's bracelets come in elegant packaging making them perfect gifts for birthdays, anniversaries, and festive occasions." }])]} />
       <Header />
 
       {/* Hero Section */}

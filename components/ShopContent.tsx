@@ -8,7 +8,6 @@ import ProductCardSkeleton from "@/components/ProductCardSkeleton"
 import CustomSelect from "@/components/ui/custom-select"
 import { useProducts } from "@/hooks/useProducts"
 import { useCategories } from "@/hooks/useCategories"
-import { useCategoryStats } from "@/hooks/useCategoryStats"
 import type { Product } from "@/contexts/CartContext"
 
 export default function ShopContent() {
@@ -24,7 +23,6 @@ export default function ShopContent() {
 
   // Use our custom hooks
   const { categories } = useCategories()
-  const { categoryStats, loading: statsLoading } = useCategoryStats()
   
   // Get category ID - either from URL or from selected category name
   const categoryId = useMemo(() => {
@@ -85,19 +83,18 @@ export default function ShopContent() {
     const options = [
       { value: "all", label: `All (${totalCount})` }
     ]
-    
+
     if (categories && categories.length > 0) {
       categories.forEach((category) => {
-        const count = categoryStats[category.name] || 0
         options.push({
           value: category.name,
-          label: `${category.name} (${count})`
+          label: `${category.name} (${category.productCount ?? 0})`
         })
       })
     }
-    
+
     return options
-  }, [categories, categoryStats, pagination?.totalCount, products.length])
+  }, [categories, pagination?.totalCount, products.length])
 
   // Create sort options for custom select
   const sortOptions = [
@@ -129,7 +126,7 @@ export default function ShopContent() {
         {/* Header */}
         <div className="mb-16 text-center">
           <h1 className="font-playfair text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent mb-4">
-            ✨ Shop Our Collection ✨
+            Shop Our Collection
           </h1>
           <p className="text-gray-600 text-lg">Handcrafted jewelry pieces designed to celebrate life's precious moments</p>
         </div>
@@ -188,7 +185,7 @@ export default function ShopContent() {
         </div>
 
         {/* Skeleton Products Grid */}
-        <div className="grid gap-6 grid-cols-1 lg:grid-cols-4">
+        <div className="grid gap-3 sm:gap-6 grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 12 }).map((_, index) => (
             <ProductCardSkeleton key={index} />
           ))}
@@ -283,13 +280,13 @@ export default function ShopContent() {
 
       {/* Products Grid */}
       {loading ? (
-        <div className="grid gap-6 grid-cols-1 lg:grid-cols-4">
+        <div className="grid gap-3 sm:gap-6 grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 12 }).map((_, index) => (
             <ProductCardSkeleton key={index} />
           ))}
         </div>
       ) : filteredProducts.length > 0 ? (
-        <div className="grid gap-6 grid-cols-1 lg:grid-cols-4">
+        <div className="grid gap-3 sm:gap-6 grid-cols-2 lg:grid-cols-4">
           {filteredProducts.map((product) => {
             // Find the original API product
             const apiProduct = products.find(p => p.id === product.id);

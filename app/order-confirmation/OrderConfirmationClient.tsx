@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { trackPurchase } from "@/lib/meta-events"
 
 type OrderData = {
   id: number
@@ -76,6 +77,15 @@ function StepIcon({ type, active, done }: { type: string; active: boolean; done:
 export default function OrderConfirmationClient({ order }: { order: OrderData }) {
   const [currentStep, setCurrentStep] = useState(0)
   const [animationDone, setAnimationDone] = useState(false)
+
+  useEffect(() => {
+    trackPurchase({
+      orderId: order.orderNumber,
+      value: order.totalAmount,
+      numItems: order.items.reduce((sum, item) => sum + item.quantity, 0),
+      contentIds: order.items.map((item) => item.id),
+    })
+  }, [order.orderNumber])
 
   useEffect(() => {
     const timers: NodeJS.Timeout[] = []

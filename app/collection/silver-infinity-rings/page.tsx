@@ -2,7 +2,7 @@ import { Metadata } from "next"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
 import JsonLd from "@/components/JsonLd"
-import { breadcrumbSchema } from "@/lib/seo-schemas"
+import { breadcrumbSchema, faqSchema } from "@/lib/seo-schemas"
 import CollectionProducts from "@/components/CollectionProducts"
 
 export const metadata: Metadata = {
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 export default function SilverInfinityRingsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
-      <JsonLd data={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Collection", url: "/shop" }, { name: "Silver Infinity Rings", url: "/collection/silver-infinity-rings" }])} />
+      <JsonLd data={[breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Collection", url: "/shop" }, { name: "Silver Infinity Rings", url: "/collection/silver-infinity-rings" }]), faqSchema([{ question: "What does an infinity ring symbolize?", answer: "Infinity rings symbolize eternal love, connection, and endless possibilities — making them meaningful gifts for loved ones." }, { question: "Are your infinity rings made from 925 sterling silver?", answer: "Yes, all our infinity rings are crafted from certified 925 sterling silver and are BIS hallmarked." }, { question: "Are infinity rings suitable as couple gifts?", answer: "Yes, infinity rings are a popular choice for couples, representing eternal love and commitment." }, { question: "Do you offer size options for infinity rings?", answer: "Yes, we offer multiple ring sizes. Please refer to the product listing for available sizes and our size guide." }, { question: "How do I take care of my infinity ring?", answer: "Clean gently with a soft cloth, avoid chemicals and moisture, and store in a dry jewellery box." }])]} />
       <Header />
 
       {/* Hero Section */}

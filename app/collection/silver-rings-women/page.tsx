@@ -2,7 +2,7 @@ import { Metadata } from "next"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
 import JsonLd from "@/components/JsonLd"
-import { breadcrumbSchema } from "@/lib/seo-schemas"
+import { breadcrumbSchema, faqSchema } from "@/lib/seo-schemas"
 import CollectionProducts from "@/components/CollectionProducts"
 
 export const metadata: Metadata = {
@@ -30,7 +30,17 @@ export const metadata: Metadata = {
 export default function SilverRingsWomenPage() {
   return (
     <div className="min-h-screen bg-gray-50">
-      <JsonLd data={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Collection", url: "/shop" }, { name: "Silver Rings for Women", url: "/collection/silver-rings-women" }])} />
+      <JsonLd data={[
+        breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Collection", url: "/shop" }, { name: "Silver Rings for Women", url: "/collection/silver-rings-women" }]),
+        faqSchema([
+          { question: "Are sterling silver rings suitable for daily wear?", answer: "Yes, sterling silver is durable and ideal for everyday use. With proper care, it maintains its shine for years." },
+          { question: "Will the ring tarnish over time?", answer: "All silver may oxidize naturally, but regular cleaning and dry storage help maintain shine. Many of our rings also include anti-tarnish coatings." },
+          { question: "Are your rings made from real 925 sterling silver?", answer: "Yes, every ring is crafted with pure 925 sterling silver and marked with a 925 hallmark for authenticity." },
+          { question: "Can I find rings suitable for gifting?", answer: "Absolutely. Our collection includes minimal, symbolic, and statement pieces that make perfect gifts for any occasion. Packaging is included." },
+          { question: "How do I clean my silver ring?", answer: "Use a soft polishing cloth to gently wipe the ring. Avoid moisture, perfumes, and harsh chemicals for long-lasting shine." },
+          { question: "Do you offer different sizes for women's rings?", answer: "Yes, we offer a wide range of sizes to ensure the perfect fit for every customer." },
+        ]),
+      ]} />
       <Header />
 
       {/* Hero Section */}

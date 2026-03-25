@@ -16,6 +16,7 @@ import { organizationSchema, localBusinessSchema, websiteSchema } from "@/lib/se
 
 import WhatsAppFloat from "@/components/WhatsAppFloat"
 import MetaPixel from "@/components/MetaPixel"
+import AnnouncementBar from "@/components/AnnouncementBar"
 import Providers from "@/components/Providers"
 import { Toaster } from "@/components/ui/toaster"
 import "./globals.css"
@@ -81,6 +82,7 @@ export const metadata: Metadata = {
     },
   },
   verification: { google: GOOGLE_SITE_VERIFICATION },
+  other: { "google-site-verification": GOOGLE_SITE_VERIFICATION },
   icons: {
     icon: [{ url: "/favicon.ico" }, { url: "/images/logo.png", type: "image/png" }],
     shortcut: "/favicon.ico",
@@ -117,6 +119,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
       <body className="font-sans antialiased bg-gradient-to-br from-blue-50 via-white to-purple-50 min-h-screen">
         <Providers>
+          <AnnouncementBar />
           {children}
           <WhatsAppFloat />
           <MetaPixel />

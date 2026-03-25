@@ -20,9 +20,24 @@ async function fetchCategoriesWithProducts() {
   });
 }
 
+async function fetchCategoriesWithCounts() {
+  return prisma.category.findMany({
+    include: {
+      _count: { select: { products: true } },
+    },
+    orderBy: { name: "asc" },
+  });
+}
+
 const getCachedCategoriesWithProducts = unstable_cache(
   fetchCategoriesWithProducts,
   ["categories-with-products"],
+  { revalidate: 60 }
+);
+
+const getCachedCategoriesWithCounts = unstable_cache(
+  fetchCategoriesWithCounts,
+  ["categories-with-counts"],
   { revalidate: 60 }
 );
 
@@ -39,23 +54,27 @@ export async function GET(request: NextRequest) {
     const includeProducts = searchParams.get("includeProducts") === "true";
     const includeCounts = searchParams.get("includeCounts") === "true";
     
-    const categories = includeProducts && includeCounts
-      ? await getCachedCategoriesWithProducts()
-      : await prisma.category.findMany({
-          include: {
-            _count: includeCounts ? { select: { products: true } } : undefined,
-            ...(includeProducts && {
-              products: {
-                include: {
-                  images: { where: { isPrimary: true }, take: 1 },
-                },
-                orderBy: { createdAt: "desc" },
-                take: 1,
+    let categories;
+    if (includeProducts && includeCounts) {
+      categories = await getCachedCategoriesWithProducts();
+    } else if (includeCounts && !includeProducts) {
+      categories = await getCachedCategoriesWithCounts();
+    } else {
+      categories = await prisma.category.findMany({
+        include: {
+          ...(includeProducts && {
+            products: {
+              include: {
+                images: { where: { isPrimary: true }, take: 1 },
               },
-            }),
-          },
-          orderBy: { name: "asc" },
-        });
+              orderBy: { createdAt: "desc" },
+              take: 1,
+            },
+          }),
+        },
+        orderBy: { name: "asc" },
+      });
+    }
     
     const transformedCategories = categories.map((category: any) => ({
       id: category.id,

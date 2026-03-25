@@ -54,7 +54,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   let productEntries: MetadataRoute.Sitemap = []
   try {
     const products = await prisma.product.findMany({
-      where: { stock: { gt: 0 } }, // only in-stock products
       select: { id: true, updatedAt: true },
       orderBy: { updatedAt: "desc" },
     })

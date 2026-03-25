@@ -7,7 +7,7 @@ import BlogCard from "@/components/BlogCard"
 import { prisma } from "@/lib/db"
 
 export const metadata: Metadata = {
-  title: "Blog",
+  title: "Jewelry Styling Tips & Care Guide | Silverline925",
   description:
     "Discover jewelry styling tips, fashion advice, and insights from Silver Line. Learn how to style your jewelry collection with elegance and confidence.",
   keywords: "jewelry blog, styling tips, fashion advice, jewelry care, Silver Line blog",

@@ -112,11 +112,11 @@ export async function POST(request: NextRequest) {
       if (existing) return NextResponse.json({ error: "You have already reviewed this product" }, { status: 400 });
 
       const review = await prisma.review.create({
-        data: { userId, productId, rating, title, comment, isVerified: true, isApproved: false },
+        data: { userId, productId, rating, title, comment, isVerified: true, isApproved: true },
         include: { user: { select: { firstName: true, lastName: true } } },
       });
 
-      return NextResponse.json({ message: "Review submitted and pending approval", review });
+      return NextResponse.json({ message: "Review submitted successfully", review });
     } else {
       if (!firstName || !lastName || !email)
         return NextResponse.json({ error: "Name and email required for guest reviews" }, { status: 400 });
@@ -139,11 +139,11 @@ export async function POST(request: NextRequest) {
       if (existing) return NextResponse.json({ error: "Already reviewed" }, { status: 400 });
 
       const review = await prisma.review.create({
-        data: { userId: guestUser.id, productId, rating, title, comment, isVerified: false, isApproved: false },
+        data: { userId: guestUser.id, productId, rating, title, comment, isVerified: false, isApproved: true },
         include: { user: { select: { firstName: true, lastName: true } } },
       });
 
-      return NextResponse.json({ message: "Review submitted and pending approval", review });
+      return NextResponse.json({ message: "Review submitted successfully", review });
     }
   } catch (err) {
     if (err instanceof z.ZodError)

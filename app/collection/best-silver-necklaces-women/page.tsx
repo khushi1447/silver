@@ -2,7 +2,7 @@ import { Metadata } from "next"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
 import JsonLd from "@/components/JsonLd"
-import { breadcrumbSchema } from "@/lib/seo-schemas"
+import { breadcrumbSchema, faqSchema } from "@/lib/seo-schemas"
 import CollectionProducts from "@/components/CollectionProducts"
 
 export const metadata: Metadata = {
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 export default function BestSilverNecklacesWomenPage() {
   return (
     <div className="min-h-screen bg-gray-50">
-      <JsonLd data={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Collection", url: "/shop" }, { name: "Best Silver Necklaces for Women", url: "/collection/best-silver-necklaces-women" }])} />
+      <JsonLd data={[breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Collection", url: "/shop" }, { name: "Best Silver Necklaces for Women", url: "/collection/best-silver-necklaces-women" }]), faqSchema([{ question: "Are these necklaces made from real 925 sterling silver?", answer: "Yes, all our necklaces are made from certified 925 sterling silver, hallmarked for purity and authenticity." }, { question: "Can I wear a silver necklace every day?", answer: "Yes, 925 sterling silver is durable enough for daily wear. Clean it occasionally with a soft polishing cloth." }, { question: "Do you offer different chain lengths?", answer: "Yes, we have multiple chain lengths available. Check individual product listings for available sizes." }, { question: "Will the silver necklace tarnish?", answer: "Silver can oxidize over time, but regular care and proper storage prevent tarnish. Many designs include anti-tarnish coating." }, { question: "Are these necklaces good for gifting?", answer: "Yes, our silver necklaces come in beautiful packaging making them ideal gifts for any occasion." }])]} />
       <Header />
 
       {/* Hero Section */}

@@ -2,7 +2,7 @@ import { Metadata } from "next"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
 import JsonLd from "@/components/JsonLd"
-import { breadcrumbSchema } from "@/lib/seo-schemas"
+import { breadcrumbSchema, faqSchema } from "@/lib/seo-schemas"
 import CollectionProducts from "@/components/CollectionProducts"
 
 export const metadata: Metadata = {
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 export default function SilverRingsMenPage() {
   return (
     <div className="min-h-screen bg-gray-50">
-      <JsonLd data={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Collection", url: "/shop" }, { name: "Silver Rings for Men", url: "/collection/silver-rings-men" }])} />
+      <JsonLd data={[breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Collection", url: "/shop" }, { name: "Silver Rings for Men", url: "/collection/silver-rings-men" }]), faqSchema([{ question: "Are your men's silver rings real 925 sterling silver?", answer: "Yes, every ring is crafted with pure 925 sterling silver and is BIS hallmarked for authenticity." }, { question: "Can men wear silver rings daily?", answer: "Absolutely. Our rings are designed for everyday wear, made from durable 925 sterling silver that resists wear and maintains shine." }, { question: "What ring sizes do you offer for men?", answer: "We offer a wide range of US ring sizes for men. Refer to our size guide on the product page for accurate measurement." }, { question: "Do silver rings tarnish?", answer: "Silver naturally oxidizes over time. Wipe with a soft cloth regularly and store in a dry place to keep shine intact." }, { question: "Are your silver rings suitable as gifts?", answer: "Yes, our men's silver rings come in elegant packaging and make excellent gifts for birthdays, anniversaries, and special occasions." }])]} />
       <Header />
 
       {/* Hero Section */}

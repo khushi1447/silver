@@ -114,7 +114,7 @@ class ApiClient {
 
   // Categories API
   async getCategories() {
-    return this.request<any[]>('/api/categories');
+    return this.request<any[]>('/api/categories?includeCounts=true');
   }
 
   async getCategory(id: string) {

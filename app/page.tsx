@@ -297,14 +297,14 @@ export default function Home() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center animate-slide-up">
             <h1 className="font-playfair text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-gray-800 mb-4 sm:mb-5 md:mb-6 drop-shadow-sm leading-tight">
-              ✨Timeless Elegance✨
+              Timeless Elegance
             </h1>
             <p className="text-base sm:text-lg md:text-xl text-gray-600 mb-6 sm:mb-7 md:mb-8 max-w-2xl mx-auto px-2 sm:px-0">
               Discover our exquisite collection of handcrafted jewelry, where every piece tells a story of beauty and
-              sophistication. 💎
+              sophistication.
             </p>
             <button className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 sm:px-7 sm:py-3.5 md:px-8 md:py-4 rounded-full hover:from-purple-600 hover:to-pink-600 active:from-purple-700 active:to-pink-700 transition-all duration-300 text-sm sm:text-base md:text-lg font-semibold light-shadow-lg hover:light-shadow-xl transform hover:scale-105 active:scale-95" onClick={() => router.push("/shop")}>
-              🛍️ Shop Collection
+              Shop Collection
             </button>
           </div>
         </div>
@@ -315,11 +315,11 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-5 md:px-6 lg:px-8">
           <div className="text-center mb-8 sm:mb-10 md:mb-12">
             <h2 className="font-playfair text-2xl sm:text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 bg-clip-text text-transparent mb-3 sm:mb-4 px-2 sm:px-0">
-              ✨ Featured Collection ✨
+              Featured Collection
             </h2>
             <p className="text-sm sm:text-base md:text-lg text-gray-600 max-w-2xl mx-auto px-2 sm:px-0">
               Explore our carefully curated selection of premium jewelry pieces, each designed to celebrate life's most
-              precious moments. 💎
+              precious moments.
             </p>
           </div>
 

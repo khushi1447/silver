@@ -46,6 +46,13 @@ export default function ShopPage() {
     <div className="min-h-screen">
       <JsonLd data={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Shop", url: "/shop" }])} />
       <Header />
+      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-0" aria-label="Breadcrumb">
+        <ol className="flex items-center gap-1.5 text-sm text-gray-500">
+          <li><a href="/" className="hover:text-gray-900 transition-colors">Home</a></li>
+          <li className="select-none">/</li>
+          <li className="text-gray-900 font-medium">Shop</li>
+        </ol>
+      </nav>
       <Suspense fallback={<ShopContentSkeleton />}>
         <ShopContent />
       </Suspense>

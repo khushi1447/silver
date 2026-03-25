@@ -2,7 +2,7 @@ import { Metadata } from "next"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
 import JsonLd from "@/components/JsonLd"
-import { breadcrumbSchema } from "@/lib/seo-schemas"
+import { breadcrumbSchema, faqSchema } from "@/lib/seo-schemas"
 import CollectionProducts from "@/components/CollectionProducts"
 
 export const metadata: Metadata = {
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 export default function SilverCubanChainsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
-      <JsonLd data={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Collection", url: "/shop" }, { name: "Silver Cuban Chains for Men", url: "/collection/silver-cuban-chains-for-men" }])} />
+      <JsonLd data={[breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Collection", url: "/shop" }, { name: "Silver Cuban Chains for Men", url: "/collection/silver-cuban-chains-for-men" }]), faqSchema([{ question: "Are your Cuban chains made from real 925 silver?", answer: "Yes, all our Cuban chains are made with certified 925 sterling silver and are hallmarked for purity." }, { question: "Are Cuban chains suitable for daily wear?", answer: "Yes, Cuban link chains are known for their sturdy build and are perfect for everyday wear." }, { question: "What lengths are available for Cuban chains?", answer: "We offer multiple chain lengths. Check individual product listings for available options." }, { question: "How do I maintain my silver Cuban chain?", answer: "Wipe with a soft polishing cloth after wearing, avoid water and chemicals, and store in a dry place." }, { question: "Are Cuban chains good gifts for men?", answer: "Absolutely. Our silver Cuban chains are bold, stylish, and come in elegant packaging — a great gift for any man." }])]} />
       <Header />
 
       {/* Hero Section */}

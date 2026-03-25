@@ -2,7 +2,7 @@ import { Metadata } from "next"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
 import JsonLd from "@/components/JsonLd"
-import { breadcrumbSchema } from "@/lib/seo-schemas"
+import { breadcrumbSchema, faqSchema } from "@/lib/seo-schemas"
 import CollectionProducts from "@/components/CollectionProducts"
 
 export const metadata: Metadata = {
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 export default function UniqueSterlingRingsWomenPage() {
   return (
     <div className="min-h-screen bg-gray-50">
-      <JsonLd data={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Collection", url: "/shop" }, { name: "Unique Sterling Rings for Women", url: "/collection/unique-sterling-rings-women" }])} />
+      <JsonLd data={[breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Collection", url: "/shop" }, { name: "Unique Sterling Rings for Women", url: "/collection/unique-sterling-rings-women" }]), faqSchema([{ question: "What makes your sterling silver rings unique?", answer: "Our unique sterling silver rings feature exclusive artisan designs, geometric patterns, and intricate details you won't find elsewhere." }, { question: "Are these rings made from real 925 sterling silver?", answer: "Yes, all rings are made with certified 925 sterling silver and carry a 925 hallmark for authenticity." }, { question: "Are unique sterling rings suitable for everyday wear?", answer: "Yes, 925 sterling silver is durable and comfortable for daily wear. Unique designs add personality to any outfit." }, { question: "How do I find my ring size?", answer: "Use our ring size guide on the product page to measure your finger accurately and find the perfect fit." }, { question: "Are these rings good for gifting?", answer: "Absolutely. Our unique designs come in elegant packaging, making them memorable gifts for any occasion." }])]} />
       <Header />
 
       {/* Hero Section */}

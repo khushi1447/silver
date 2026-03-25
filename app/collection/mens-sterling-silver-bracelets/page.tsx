@@ -2,7 +2,7 @@ import { Metadata } from "next"
 import Header from "@/components/Header"
 import Footer from "@/components/Footer"
 import JsonLd from "@/components/JsonLd"
-import { breadcrumbSchema } from "@/lib/seo-schemas"
+import { breadcrumbSchema, faqSchema } from "@/lib/seo-schemas"
 import CollectionProducts from "@/components/CollectionProducts"
 
 export const metadata: Metadata = {
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 export default function MensSterlingSilverBraceletsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
-      <JsonLd data={breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Collection", url: "/shop" }, { name: "Men's Sterling Silver Bracelets", url: "/collection/mens-sterling-silver-bracelets" }])} />
+      <JsonLd data={[breadcrumbSchema([{ name: "Home", url: "/" }, { name: "Collection", url: "/shop" }, { name: "Men's Sterling Silver Bracelets", url: "/collection/mens-sterling-silver-bracelets" }]), faqSchema([{ question: "Are your men's bracelets made from real 925 silver?", answer: "Yes, all bracelets in this collection are made with certified 925 sterling silver and are BIS hallmarked." }, { question: "Can men wear silver bracelets daily?", answer: "Absolutely. Our bracelets are designed for daily wear with durable constructions and secure clasps." }, { question: "What sizes are available for men's bracelets?", answer: "We offer multiple bracelet sizes. Please check the individual product listing for size options and fit guides." }, { question: "Will the bracelet tarnish or lose shine?", answer: "With regular cleaning using a soft cloth and proper storage, our silver bracelets maintain their shine for years." }, { question: "Are these suitable as gifts for men?", answer: "Yes, our men's silver bracelets come in elegant packaging and are ideal gifts for birthdays, anniversaries, and festivals." }])]} />
       <Header />
 
       {/* Hero Section */}

@@ -21,7 +21,7 @@ export default function Footer() {
             </div>
             <p className="text-gray-300 mb-4 sm:mb-6 max-w-md text-sm sm:text-base">
               Discover our exquisite collection of handcrafted jewelry. Each piece is carefully designed to celebrate
-              life's precious moments with timeless elegance. ✨
+              life's precious moments with timeless elegance.
             </p>
             <div className="flex space-x-3 sm:space-x-4">
               <a
